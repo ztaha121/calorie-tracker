@@ -115,22 +115,30 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
   } : { name: '', calories: '', protein: '', carbs: '', fat: '' })
   const cameraRef = useRef()
 
-  async function searchFood() {
+ async function searchFood() {
     if (!query.trim()) return
     setLoading(true)
     try {
-      const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=10`)
+      const apiKey = import.meta.env.VITE_USDA_API_KEY
+      const res = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=10&api_key=${apiKey}`)
       const data = await res.json()
-      const items = (data.products || [])
-        .filter(p => p.product_name && p.nutriments?.['energy-kcal_100g'])
-        .map(p => ({
-          name: p.product_name,
-          calories: Math.round(p.nutriments['energy-kcal_100g'] || 0),
-          protein: Math.round(p.nutriments.proteins_100g || 0),
-          carbs: Math.round(p.nutriments.carbohydrates_100g || 0),
-          fat: Math.round(p.nutriments.fat_100g || 0),
-          per: '100g'
-        }))
+      const items = (data.foods || [])
+        .filter(f => f.foodNutrients)
+        .map(f => {
+          const get = (name) => {
+            const n = f.foodNutrients.find(n => n.nutrientName?.toLowerCase().includes(name))
+            return Math.round((n?.value || 0) * 10) / 10
+          }
+          return {
+            name: f.description,
+            calories: Math.round(get('energy') || get('calorie')),
+            protein: get('protein'),
+            carbs: get('carbohydrate'),
+            fat: get('total lipid'),
+            per: '100g'
+          }
+        })
+        .filter(f => f.calories > 0)
       setResults(items)
     } catch { setResults([]) }
     setLoading(false)
