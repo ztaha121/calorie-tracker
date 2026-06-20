@@ -25,7 +25,7 @@ async function registerBiometric(userId, email) {
   const cred = await navigator.credentials.create({
     publicKey: {
       challenge,
-      rp: { name: 'Calorie Tracker', id: window.location.hostname },
+      rp: { name: 'Mizan', id: window.location.hostname },
       user: {
         id: new TextEncoder().encode(userId),
         name: email,
@@ -134,7 +134,7 @@ export default function AuthScreen() {
     <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px 28px', maxWidth: 430, margin: '0 auto' }}>
 
       <div style={{ marginBottom: 40 }}>
-        <div style={{ fontSize: 13, color: '#a8e063', fontWeight: 500, marginBottom: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Calorie Tracker</div>
+        <div style={{ fontSize: 13, color: '#a8e063', fontWeight: 500, marginBottom: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Mizan</div>
         <h1 style={{ fontSize: 32, fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: 8 }}>
           {mode === 'forgot' ? 'Reset password' : mode === 'login' ? 'Welcome back' : 'Create account'}
         </h1>

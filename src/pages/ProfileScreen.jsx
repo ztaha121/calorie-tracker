@@ -117,7 +117,7 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals })
       )}
 
       <p style={{ marginTop: 32, textAlign: 'center', fontSize: 12, color: '#333' }}>
-        Calorie Tracker · Patent pending · DTH Technology
+        Mizan · Patent pending · DTH Technology
       </p>
     </div>
   )
