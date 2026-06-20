@@ -11,7 +11,7 @@ const today = () => new Date().toISOString().split('T')[0]
 
 const DEFAULTS = { goal: 2000, macroGoals: { protein: 150, carbs: 200, fat: 65 } }
 
-function loadAllEntries() {
+function loadLocalEntries() {
   const result = {}
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i)
@@ -29,7 +29,8 @@ export default function App() {
   const [skipAuth, setSkipAuth] = useState(() => localStorage.getItem('skip_auth') === 'true')
   const [onboarded, setOnboarded] = useState(() => localStorage.getItem('onboarded') === 'true')
   const [activeTab, setActiveTab] = useState('today')
-  const [allEntries, setAllEntries] = useState(loadAllEntries)
+  const [allEntries, setAllEntries] = useState(loadLocalEntries)
+  const [dbLoading, setDbLoading] = useState(false)
   const [settings, setSettings] = useState(() => {
     try { return JSON.parse(localStorage.getItem('settings') || 'null') || DEFAULTS } catch { return DEFAULTS }
   })
@@ -49,24 +50,113 @@ export default function App() {
     return () => listener.subscription.unsubscribe()
   }, [])
 
+  // load from supabase when user logs in
+  useEffect(() => {
+    if (!user) return
+    setDbLoading(true)
+    supabase
+      .from('food_logs')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (error) { console.error(error); setDbLoading(false); return }
+        const grouped = {}
+        ;(data || []).forEach(row => {
+          if (!grouped[row.date]) grouped[row.date] = []
+          grouped[row.date].push({
+            id: row.id,
+            name: row.name,
+            calories: row.calories,
+            protein: row.protein,
+            carbs: row.carbs,
+            fat: row.fat,
+            meal: row.meal,
+            portion: row.portion,
+            per: row.per,
+            time: row.time,
+          })
+        })
+        setAllEntries(grouped)
+        setDbLoading(false)
+      })
+  }, [user])
+
   const todayEntries = allEntries[today()] || []
 
-  function saveEntries(updated) {
-    localStorage.setItem('entries_' + today(), JSON.stringify(updated))
-    setAllEntries(prev => ({ ...prev, [today()]: updated }))
+  async function addFood(food) {
+    const entry = {
+      ...food,
+      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    }
+
+    if (user) {
+      const { data, error } = await supabase.from('food_logs').insert({
+        user_id: user.id,
+        date: today(),
+        name: entry.name,
+        calories: entry.calories || 0,
+        protein: entry.protein || 0,
+        carbs: entry.carbs || 0,
+        fat: entry.fat || 0,
+        meal: entry.meal,
+        portion: entry.portion || 100,
+        per: entry.per,
+        time: entry.time,
+      }).select().single()
+      if (!error && data) {
+        entry.id = data.id
+        setAllEntries(prev => ({
+          ...prev,
+          [today()]: [...(prev[today()] || []), entry]
+        }))
+      }
+    } else {
+      entry.id = Date.now()
+      const updated = [...todayEntries, entry]
+      localStorage.setItem('entries_' + today(), JSON.stringify(updated))
+      setAllEntries(prev => ({ ...prev, [today()]: updated }))
+    }
   }
 
-  function addFood(food) {
-    const entry = { ...food, id: Date.now(), time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) }
-    saveEntries([...todayEntries, entry])
+  async function removeFood(id) {
+    if (user) {
+      await supabase.from('food_logs').delete().eq('id', id).eq('user_id', user.id)
+      setAllEntries(prev => {
+        const updated = { ...prev }
+        Object.keys(updated).forEach(date => {
+          updated[date] = updated[date].filter(e => e.id !== id)
+        })
+        return updated
+      })
+    } else {
+      const updated = todayEntries.filter(e => e.id !== id)
+      localStorage.setItem('entries_' + today(), JSON.stringify(updated))
+      setAllEntries(prev => ({ ...prev, [today()]: updated }))
+    }
   }
 
-  function removeFood(id) {
-    saveEntries(todayEntries.filter(e => e.id !== id))
-  }
-
-  function editFood(id, updated) {
-    saveEntries(todayEntries.map(e => e.id === id ? { ...e, ...updated } : e))
+  async function editFood(id, updated) {
+    if (user) {
+      await supabase.from('food_logs').update({
+        name: updated.name,
+        calories: updated.calories || 0,
+        protein: updated.protein || 0,
+        carbs: updated.carbs || 0,
+        fat: updated.fat || 0,
+        meal: updated.meal,
+        portion: updated.portion || 100,
+        per: updated.per,
+      }).eq('id', id).eq('user_id', user.id)
+      setAllEntries(prev => ({
+        ...prev,
+        [today()]: (prev[today()] || []).map(e => e.id === id ? { ...e, ...updated } : e)
+      }))
+    } else {
+      const newEntries = todayEntries.map(e => e.id === id ? { ...e, ...updated } : e)
+      localStorage.setItem('entries_' + today(), JSON.stringify(newEntries))
+      setAllEntries(prev => ({ ...prev, [today()]: newEntries }))
+    }
   }
 
   function updateGoals({ goal, macroGoals }) {
@@ -105,13 +195,21 @@ export default function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', maxWidth: 430, margin: '0 auto', overflow: 'hidden' }}>
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        {activeTab === 'today' && (
-          <HomeScreen entries={todayEntries} onAdd={addFood} onRemove={removeFood} onEdit={editFood} goal={settings.goal} macroGoals={settings.macroGoals} user={user} />
-        )}
-        {activeTab === 'log' && <LogScreen allEntries={allEntries} />}
-        {activeTab === 'progress' && <ProgressScreen allEntries={allEntries} goal={settings.goal} />}
-        {activeTab === 'profile' && (
-          <ProfileScreen user={user} goal={settings.goal} macroGoals={settings.macroGoals} onUpdateGoals={updateGoals} />
+        {dbLoading ? (
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444', fontSize: 14 }}>
+            Syncing your data...
+          </div>
+        ) : (
+          <>
+            {activeTab === 'today' && (
+              <HomeScreen entries={todayEntries} onAdd={addFood} onRemove={removeFood} onEdit={editFood} goal={settings.goal} macroGoals={settings.macroGoals} user={user} />
+            )}
+            {activeTab === 'log' && <LogScreen allEntries={allEntries} />}
+            {activeTab === 'progress' && <ProgressScreen allEntries={allEntries} goal={settings.goal} />}
+            {activeTab === 'profile' && (
+              <ProfileScreen user={user} goal={settings.goal} macroGoals={settings.macroGoals} onUpdateGoals={updateGoals} />
+            )}
+          </>
         )}
       </div>
       <div style={{ background: 'rgba(14,14,15,0.97)', borderTop: '0.5px solid rgba(255,255,255,0.06)', display: 'flex', flexShrink: 0 }}>
