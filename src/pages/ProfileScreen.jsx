@@ -105,10 +105,24 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals })
       </div>
 
       {user ? (
-        <button onClick={signOut} style={{
-          width: '100%', padding: '14px', background: 'rgba(255,107,107,0.08)',
-          borderRadius: 14, color: '#ff6b6b', fontSize: 15, fontWeight: 500
-        }}>Sign out</button>
+        <>
+          <button onClick={async () => {
+            const { data } = await supabase.from('profiles').select('is_premium').eq('id', user.id).single()
+            if (data?.is_premium) {
+              alert('✨ Pro access confirmed! Your subscription is active.')
+            } else {
+              window.location.href = 'https://calorie-tracker.lemonsqueezy.com/checkout/buy/dcfeff6d-dfd3-4617-b1c2-bfe200389807?redirect_url=https://calorie-tracker-fawn-sigma.vercel.app?upgraded=true'
+            }
+          }} style={{
+            width: '100%', padding: '14px', background: 'rgba(168,224,99,0.08)',
+            borderRadius: 14, color: '#a8e063', fontSize: 15, fontWeight: 500,
+            marginBottom: 10
+          }}>Restore purchase</button>
+          <button onClick={signOut} style={{
+            width: '100%', padding: '14px', background: 'rgba(255,107,107,0.08)',
+            borderRadius: 14, color: '#ff6b6b', fontSize: 15, fontWeight: 500
+          }}>Sign out</button>
+        </>
       ) : (
         <button onClick={() => { localStorage.removeItem('skip_auth'); location.reload() }} style={{
           width: '100%', padding: '14px', background: 'rgba(255,255,255,0.06)',
