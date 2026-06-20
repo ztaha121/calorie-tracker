@@ -14,29 +14,8 @@ export default function UpgradeScreen({ onClose, scansUsed = 3, user }) {
     'Priority support',
   ]
 
-  async function handleUpgrade() {
-    setLoading(true)
-    setError('')
-    try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user?.id || 'guest',
-          email: user?.email || '',
-          successUrl: `${window.location.origin}?upgraded=true`,
-          cancelUrl: window.location.origin,
-        })
-      })
-      const data = await response.json()
-      console.log('Checkout response:', data)
-      if (data.error) throw new Error(data.error)
-      window.location.href = data.url
-    } catch (err) {
-      console.log('Upgrade error:', err.message)
-      setError('Payment failed to load. Please try again.')
-    }
-    setLoading(false)
+  function handleUpgrade() {
+    window.location.href = 'https://buy.stripe.com/test_fZu4gAfqb5l4cKfdW967S00'
   }
 
   return (
