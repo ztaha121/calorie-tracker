@@ -104,11 +104,16 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals })
         )}
       </div>
 
-      {user && (
+      {user ? (
         <button onClick={signOut} style={{
           width: '100%', padding: '14px', background: 'rgba(255,107,107,0.08)',
           borderRadius: 14, color: '#ff6b6b', fontSize: 15, fontWeight: 500
         }}>Sign out</button>
+      ) : (
+        <button onClick={() => { localStorage.removeItem('skip_auth'); location.reload() }} style={{
+          width: '100%', padding: '14px', background: 'rgba(255,255,255,0.06)',
+          borderRadius: 14, color: '#888', fontSize: 15, fontWeight: 500
+        }}>Switch to account</button>
       )}
 
       <p style={{ marginTop: 32, textAlign: 'center', fontSize: 12, color: '#333' }}>
