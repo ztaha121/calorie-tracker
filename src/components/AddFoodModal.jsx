@@ -160,6 +160,71 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
     protein: editEntry.protein, carbs: editEntry.carbs, fat: editEntry.fat
   } : { name: '', calories: '', protein: '', carbs: '', fat: '' })
   const cameraRef = useRef()
+  const barcodeRef = useRef()
+  const [barcodeLoading, setBarcodeLoading] = useState(false)
+  const [barcodeError, setBarcodeError] = useState('')
+
+  async function handleBarcodeScan(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setBarcodeError('')
+    setBarcodeLoading(true)
+    try {
+      // Use AI to read barcode from image
+      const base64 = await new Promise((res, rej) => {
+        const r = new FileReader()
+        r.onload = () => res(r.result.split(',')[1])
+        r.onerror = rej
+        r.readAsDataURL(file)
+      })
+      const response = await fetch('https://rnwsnnvdgsxqamvofhno.supabase.co/functions/v1/scan-food', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: base64,
+          mediaType: file.type,
+          userId: user?.id,
+          prompt: 'This is a photo of a product barcode or food package. Read the barcode number if visible, or identify the product from the packaging. Return the nutrition info per 100g as JSON: {"name":"product name","calories":number,"protein":number,"carbs":number,"fat":number,"confidence":"high/medium/low"}'
+        })
+      })
+      const food = await response.json()
+      if (food.error === 'UPGRADE_REQUIRED') { setShowUpgrade(true); setBarcodeLoading(false); return }
+      if (food.error) throw new Error(food.error)
+      await incrementScan()
+      setSelected(food)
+      setPortion(100)
+      setTab('confirm')
+    } catch {
+      // fallback: try Open Food Facts with manual barcode entry
+      setBarcodeError('Could not read barcode. Try typing the barcode number below.')
+    }
+    setBarcodeLoading(false)
+  }
+
+  async function lookupBarcode(code) {
+    if (!code.trim()) return
+    setBarcodeLoading(true)
+    setBarcodeError('')
+    try {
+      const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`)
+      const data = await res.json()
+      if (data.status === 0) { setBarcodeError('Product not found. Try searching by name.'); setBarcodeLoading(false); return }
+      const p = data.product
+      const food = {
+        name: p.product_name || p.abbreviated_product_name || 'Unknown product',
+        calories: Math.round(p.nutriments?.['energy-kcal_100g'] || 0),
+        protein: Math.round(p.nutriments?.proteins_100g || 0),
+        carbs: Math.round(p.nutriments?.carbohydrates_100g || 0),
+        fat: Math.round(p.nutriments?.fat_100g || 0),
+        per: '100g'
+      }
+      if (!food.calories) { setBarcodeError('No nutrition data for this product.'); setBarcodeLoading(false); return }
+      setSelected(food)
+      setPortion(100)
+      setTab('confirm')
+    } catch { setBarcodeError('Could not find product. Try searching by name.') }
+    setBarcodeLoading(false)
+  }
   const [templates, setTemplates] = useState(() => {
     try { return JSON.parse(localStorage.getItem('meal_templates') || '[]') } catch { return [] }
   })
@@ -303,7 +368,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
 
         {tab !== 'confirm' && (
           <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
-            {[['search', '🔍'], ['quick', '⚡'], ['arabic', '🌙'], ['scan', '📸'], ['templates', '⭐'], ['custom', '✏️']].map(([t, label]) => (
+            {[['search', '🔍'], ['quick', '⚡'], ['arabic', '🌙'], ['scan', '📸'], ['barcode', '📦'], ['templates', '⭐'], ['custom', '✏️']].map(([t, label]) => (
               <button key={t} onClick={() => setTab(t)} style={{
                 flex: 1, padding: '8px 4px', borderRadius: 10, fontSize: 13, fontWeight: 500,
                 background: tab === t ? '#a8e063' : 'rgba(255,255,255,0.06)',
@@ -380,6 +445,42 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                 <div style={{ fontSize: 17, fontWeight: 500, color: '#a8e063', marginLeft: 12 }}>{item.calories}</div>
               </button>
             ))}
+          </div>
+        )}
+
+        {tab === 'barcode' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '20px 0' }}>
+            {barcodeLoading ? (
+              <>
+                <div style={{ fontSize: 48 }}>🔍</div>
+                <div style={{ fontSize: 15, color: '#888' }}>Looking up product...</div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 48 }}>📦</div>
+                <div style={{ fontSize: 15, color: '#888', textAlign: 'center', lineHeight: 1.6 }}>
+                  Scan a product barcode or type the barcode number to get nutrition info.
+                </div>
+                {barcodeError && <p style={{ color: '#ff6b6b', fontSize: 13, textAlign: 'center' }}>{barcodeError}</p>}
+                <input ref={barcodeRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleBarcodeScan} />
+                <button onClick={() => barcodeRef.current?.click()} style={{
+                  width: '100%', padding: '15px', background: '#a8e063',
+                  borderRadius: 14, color: '#0e0e0f', fontSize: 16, fontWeight: 600
+                }}>📷 Scan barcode</button>
+                <div style={{ width: '100%', display: 'flex', gap: 8 }}>
+                  <input
+                    style={{ flex: 1, padding: '12px 14px', background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#f0f0f0', fontSize: 15 }}
+                    placeholder="Or type barcode number..."
+                    type="number"
+                    onKeyDown={e => e.key === 'Enter' && lookupBarcode(e.target.value)}
+                    id="barcodeInput"
+                  />
+                  <button onClick={() => lookupBarcode(document.getElementById('barcodeInput').value)} style={{
+                    padding: '12px 16px', background: 'rgba(255,255,255,0.08)', borderRadius: 10, color: '#888', fontSize: 14
+                  }}>Go</button>
+                </div>
+              </>
+            )}
           </div>
         )}
 
