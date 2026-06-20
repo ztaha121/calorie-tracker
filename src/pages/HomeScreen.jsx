@@ -57,7 +57,14 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
           <div style={{ fontSize: 12, color: '#555', marginBottom: 2 }}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
           </div>
-          <div style={{ fontSize: 22, fontWeight: 500 }}>Today</div>
+          <div style={{ fontSize: 22, fontWeight: 500 }}>
+            {(() => {
+              const h = new Date().getHours()
+              const greeting = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
+              const name = user?.user_metadata?.full_name?.split(' ')[0] || ''
+              return name ? `${greeting}, ${name}` : greeting
+            })()}
+          </div>
         </div>
         <div style={{ background: 'rgba(168,224,99,0.12)', borderRadius: 99, padding: '7px 14px', color: '#a8e063', fontSize: 13, fontWeight: 500 }}>
           {goal} kcal goal
