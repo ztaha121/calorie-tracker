@@ -3,12 +3,16 @@ import { supabase } from '../lib/supabase.js'
 
 export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals }) {
   const [editing, setEditing] = useState(false)
+  const [displayName, setDisplayName] = useState(user?.user_metadata?.full_name || '')
   const [calGoal, setCalGoal] = useState(goal)
   const [protein, setProtein] = useState(macroGoals.protein)
   const [carbs, setCarbs] = useState(macroGoals.carbs)
   const [fat, setFat] = useState(macroGoals.fat)
 
-  function saveGoals() {
+  async function saveGoals() {
+    if (displayName && user) {
+      await supabase.auth.updateUser({ data: { full_name: displayName } })
+    }
     onUpdateGoals({
       goal: Number(calGoal),
       macroGoals: { protein: Number(protein), carbs: Number(carbs), fat: Number(fat) }
@@ -65,6 +69,10 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals })
 
         {editing ? (
           <div style={{ padding: '16px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div>
+              <div style={{ fontSize: 12, color: '#555', marginBottom: 6 }}>Your name</div>
+              <input style={inputStyle} placeholder="e.g. Zaynab" value={displayName} onChange={e => setDisplayName(e.target.value)} />
+            </div>
             <div>
               <div style={{ fontSize: 12, color: '#555', marginBottom: 6 }}>Calories (kcal)</div>
               <input style={inputStyle} type="number" value={calGoal} onChange={e => setCalGoal(e.target.value)} />
