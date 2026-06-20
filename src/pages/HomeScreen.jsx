@@ -21,11 +21,14 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
     fat: acc.fat + (e.fat || 0),
   }), { calories: 0, protein: 0, carbs: 0, fat: 0 })
 
-  function addWater(n) {
+function addWater(n) {
     const today = new Date().toISOString().split('T')[0]
     const next = Math.max(0, Math.min(water + n, WATER_GOAL))
     setWater(next)
     localStorage.setItem('water_' + today, next)
+    if (next === WATER_GOAL && n > 0) {
+      setTimeout(() => alert('💧 Amazing! You hit your water goal for today!'), 100)
+    }
   }
 
   function handleAdd(food) {
