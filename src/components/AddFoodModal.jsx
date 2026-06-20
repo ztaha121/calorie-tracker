@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import UpgradeScreen from '../pages/UpgradeScreen.jsx'
+import { useScanLimit } from '../hooks/useScanLimit.js'
 
 const ARABIC_FOODS = [
   { name: 'تمر (Dates)', calories: 277, protein: 1.8, carbs: 75, fat: 0.2, per: '100g' },
@@ -105,7 +106,6 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState('')
   const [showUpgrade, setShowUpgrade] = useState(false)
-  const [scansUsed, setScansUsed] = useState(() => Number(localStorage.getItem('scan_count') || 0))
   const [selected, setSelected] = useState(null)
   const [portion, setPortion] = useState(isEdit ? (editEntry.portion || 100) : 100)
   const [meal, setMeal] = useState(isEdit ? (editEntry.meal || getCurrentMeal()) : getCurrentMeal())
@@ -114,6 +114,8 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
     protein: editEntry.protein, carbs: editEntry.carbs, fat: editEntry.fat
   } : { name: '', calories: '', protein: '', carbs: '', fat: '' })
   const cameraRef = useRef()
+
+  const { canScan, scansLeft, isPremium, incrementScan } = useScanLimit(user)
 
   async function searchFood(val) {
     const q = val ?? query
@@ -157,7 +159,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
   async function handleAIScan(e) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (!user && scansUsed >= 3) {
+    if (!canScan) {
       setShowUpgrade(true)
       return
     }
@@ -182,9 +184,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
         return
       }
       if (food.error) throw new Error(food.error)
-      const newCount = scansUsed + 1
-      localStorage.setItem('scan_count', newCount)
-      setScansUsed(newCount)
+      await incrementScan()
       setSelected(food)
       setPortion(100)
       setTab('confirm')
@@ -269,7 +269,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
             <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
               <input style={{ ...inputStyle, flex: 1 }} placeholder="Search food..." value={query}
                 onChange={e => { setQuery(e.target.value); if (e.target.value.length > 2) searchFood(e.target.value) }} />
-              <button onClick={searchFood} style={{ padding: '12px 16px', background: '#a8e063', borderRadius: 10, color: '#0e0e0f', fontWeight: 500 }}>
+              <button onClick={() => searchFood()} style={{ padding: '12px 16px', background: '#a8e063', borderRadius: 10, color: '#0e0e0f', fontWeight: 500 }}>
                 {loading ? '...' : 'Go'}
               </button>
             </div>
@@ -336,9 +336,14 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
 
         {tab === 'scan' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '20px 0' }}>
-            {!user && (
-              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '8px 16px', fontSize: 13, color: scansUsed >= 3 ? '#ff6b6b' : '#888' }}>
-                {scansUsed >= 3 ? '0 free scans left — upgrade to continue' : `${3 - scansUsed} free scan${3 - scansUsed !== 1 ? 's' : ''} remaining`}
+            {!isPremium && (
+              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '8px 16px', fontSize: 13, color: canScan ? '#888' : '#ff6b6b' }}>
+                {canScan ? `${scansLeft} free scan${scansLeft !== 1 ? 's' : ''} remaining` : '0 free scans left — upgrade to continue'}
+              </div>
+            )}
+            {isPremium && (
+              <div style={{ background: 'rgba(168,224,99,0.08)', borderRadius: 10, padding: '8px 16px', fontSize: 13, color: '#a8e063' }}>
+                ✨ Pro — unlimited scans
               </div>
             )}
             {aiLoading ? (
@@ -355,14 +360,15 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                 </div>
                 {aiError && <p style={{ color: '#ff6b6b', fontSize: 13, textAlign: 'center' }}>{aiError}</p>}
                 <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleAIScan} />
-                <button onClick={() => scansUsed >= 3 && !user ? setShowUpgrade(true) : cameraRef.current?.click()} style={{
-                  width: '100%', padding: '15px', background: scansUsed >= 3 && !user ? 'rgba(168,224,99,0.15)' : '#a8e063',
-                  borderRadius: 14, color: scansUsed >= 3 && !user ? '#a8e063' : '#0e0e0f', fontSize: 16, fontWeight: 600,
-                  border: scansUsed >= 3 && !user ? '1px solid rgba(168,224,99,0.3)' : 'none'
+                <button onClick={() => !canScan ? setShowUpgrade(true) : cameraRef.current?.click()} style={{
+                  width: '100%', padding: '15px',
+                  background: !canScan ? 'rgba(168,224,99,0.15)' : '#a8e063',
+                  borderRadius: 14, color: !canScan ? '#a8e063' : '#0e0e0f', fontSize: 16, fontWeight: 600,
+                  border: !canScan ? '1px solid rgba(168,224,99,0.3)' : 'none'
                 }}>
-                  {scansUsed >= 3 && !user ? '✨ Upgrade to scan' : '📷 Take photo'}
+                  {!canScan ? '✨ Upgrade to scan' : '📷 Take photo'}
                 </button>
-                {!(scansUsed >= 3 && !user) && (
+                {canScan && (
                   <button onClick={() => { if (cameraRef.current) { cameraRef.current.removeAttribute('capture'); cameraRef.current.click() } }} style={{
                     width: '100%', padding: '13px', background: 'rgba(255,255,255,0.06)', borderRadius: 14, color: '#888', fontSize: 14
                   }}>🖼️ Choose from gallery</button>
@@ -426,7 +432,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
           </div>
         )}
       </div>
-      {showUpgrade && <UpgradeScreen onClose={() => setShowUpgrade(false)} scansUsed={scansUsed} />}
+      {showUpgrade && <UpgradeScreen onClose={() => setShowUpgrade(false)} scansUsed={3 - scansLeft} user={user} />}
     </div>
   )
 }
