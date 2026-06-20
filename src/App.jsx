@@ -208,8 +208,10 @@ export default function App() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', maxWidth: 430, margin: '0 auto', overflow: 'hidden' }}>
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {dbLoading ? (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444', fontSize: 14 }}>
-            Syncing your data...
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+            <style>{`@keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.4 } }`}</style>
+            <img src="/icon-192.png" style={{ width: 64, height: 64, borderRadius: 16, animation: 'pulse 1.5s ease-in-out infinite' }} />
+            <div style={{ color: '#555', fontSize: 14 }}>Loading your data...</div>
           </div>
         ) : (
           <>
