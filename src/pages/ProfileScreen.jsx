@@ -9,6 +9,27 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals })
   const [carbs, setCarbs] = useState(macroGoals.carbs)
   const [fat, setFat] = useState(macroGoals.fat)
 
+  const [notifEnabled, setNotifEnabled] = useState(() => localStorage.getItem('notif_enabled') === 'true')
+
+  async function toggleNotifications() {
+    if (notifEnabled) {
+      localStorage.setItem('notif_enabled', 'false')
+      setNotifEnabled(false)
+      return
+    }
+    const permission = await Notification.requestPermission()
+    if (permission === 'granted') {
+      localStorage.setItem('notif_enabled', 'true')
+      setNotifEnabled(true)
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready
+        reg.active?.postMessage({ type: 'SCHEDULE_REMINDER', time: 20 })
+      }
+    } else {
+      alert('Please enable notifications in your browser settings.')
+    }
+  }
+
   async function saveGoals() {
     if (displayName && user) {
       await supabase.auth.updateUser({ data: { full_name: displayName } })
@@ -55,6 +76,27 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals })
             </div>
             <div style={{ fontSize: 13, color: '#555' }}>{user?.email || 'Local mode'}</div>
           </div>
+        </div>
+      </div>
+
+      <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '0 16px', marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0' }}>
+          <div>
+            <div style={{ fontSize: 14, color: '#f0f0f0', marginBottom: 2 }}>Daily reminder</div>
+            <div style={{ fontSize: 12, color: '#555' }}>Get reminded at 8pm if you haven't logged</div>
+          </div>
+          <button onClick={toggleNotifications} style={{
+            width: 48, height: 26, borderRadius: 99,
+            background: notifEnabled ? '#a8e063' : 'rgba(255,255,255,0.1)',
+            position: 'relative', transition: 'background 0.2s', flexShrink: 0
+          }}>
+            <div style={{
+              width: 20, height: 20, borderRadius: 99, background: '#fff',
+              position: 'absolute', top: 3,
+              left: notifEnabled ? 25 : 3,
+              transition: 'left 0.2s'
+            }} />
+          </button>
         </div>
       </div>
 

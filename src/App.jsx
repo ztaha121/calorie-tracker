@@ -36,6 +36,13 @@ export default function App() {
   })
 
   useEffect(() => {
+    // register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        console.log('SW registered')
+      }).catch(() => {})
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user ?? null)
       setAuthChecked(true)
