@@ -3,17 +3,63 @@ import UpgradeScreen from '../pages/UpgradeScreen.jsx'
 import { useScanLimit } from '../hooks/useScanLimit.js'
 
 const ARABIC_FOODS = [
+  // Staples
   { name: 'تمر (Dates)', calories: 277, protein: 1.8, carbs: 75, fat: 0.2, per: '100g' },
-  { name: 'كبسة (Kabsa)', calories: 320, protein: 18, carbs: 38, fat: 9, per: '1 serving' },
-  { name: 'فول مدمس (Foul)', calories: 110, protein: 8, carbs: 18, fat: 0.5, per: '1 cup' },
   { name: 'خبز عربي (Arabic bread)', calories: 165, protein: 5.5, carbs: 33, fat: 0.7, per: '1 piece' },
-  { name: 'حمص (Hummus)', calories: 166, protein: 8, carbs: 14, fat: 10, per: '100g' },
-  { name: 'شاورما دجاج (Chicken shawarma)', calories: 290, protein: 24, carbs: 22, fat: 11, per: '1 wrap' },
   { name: 'أرز بسمتي (Basmati rice)', calories: 206, protein: 4.3, carbs: 45, fat: 0.4, per: '1 cup cooked' },
   { name: 'لبن (Laban)', calories: 60, protein: 3.4, carbs: 4.8, fat: 3.2, per: '1 cup' },
+  { name: 'خبز تنور (Tandoor bread)', calories: 145, protein: 5, carbs: 29, fat: 1.2, per: '1 piece' },
+  // Rice dishes
+  { name: 'كبسة دجاج (Chicken Kabsa)', calories: 320, protein: 18, carbs: 38, fat: 9, per: '1 serving' },
   { name: 'مندي دجاج (Chicken Mandi)', calories: 380, protein: 28, carbs: 42, fat: 10, per: '1 serving' },
-  { name: 'شوربة عدس (Lentil soup)', calories: 130, protein: 9, carbs: 20, fat: 2, per: '1 bowl' },
+  { name: 'مندي لحم (Lamb Mandi)', calories: 420, protein: 30, carbs: 42, fat: 14, per: '1 serving' },
+  { name: 'برياني دجاج (Chicken Biryani)', calories: 350, protein: 20, carbs: 45, fat: 10, per: '1 serving' },
+  { name: 'مجبوس (Machboos)', calories: 340, protein: 22, carbs: 40, fat: 10, per: '1 serving' },
+  { name: 'أرز بالخضار (Vegetable rice)', calories: 220, protein: 5, carbs: 44, fat: 3, per: '1 cup' },
+  // Dips & sides
+  { name: 'حمص (Hummus)', calories: 166, protein: 8, carbs: 14, fat: 10, per: '100g' },
+  { name: 'فول مدمس (Foul)', calories: 110, protein: 8, carbs: 18, fat: 0.5, per: '1 cup' },
+  { name: 'متبل (Mutabbal)', calories: 90, protein: 2.5, carbs: 8, fat: 5.5, per: '100g' },
+  { name: 'تبولة (Tabbouleh)', calories: 70, protein: 2, carbs: 10, fat: 3, per: '100g' },
+  { name: 'فتوش (Fattoush)', calories: 85, protein: 2, carbs: 12, fat: 3.5, per: '1 bowl' },
+  { name: 'لبنة (Labneh)', calories: 160, protein: 8, carbs: 4, fat: 12, per: '100g' },
+  { name: 'زيتون (Olives)', calories: 115, protein: 0.8, carbs: 6, fat: 10, per: '100g' },
+  // Street food & wraps
+  { name: 'شاورما دجاج (Chicken shawarma)', calories: 290, protein: 24, carbs: 22, fat: 11, per: '1 wrap' },
+  { name: 'شاورما لحم (Meat shawarma)', calories: 340, protein: 22, carbs: 24, fat: 16, per: '1 wrap' },
   { name: 'فلافل (Falafel)', calories: 57, protein: 2.3, carbs: 5.4, fat: 3, per: '1 piece' },
+  { name: 'سمبوسة (Sambosa)', calories: 120, protein: 4, carbs: 14, fat: 6, per: '1 piece' },
+  { name: 'كباب (Kebab)', calories: 220, protein: 20, carbs: 5, fat: 14, per: '2 skewers' },
+  { name: 'كفتة (Kofta)', calories: 240, protein: 18, carbs: 6, fat: 16, per: '2 pieces' },
+  { name: 'مطبق (Mutabbaq)', calories: 280, protein: 10, carbs: 32, fat: 14, per: '1 piece' },
+  // Soups & stews
+  { name: 'شوربة عدس (Lentil soup)', calories: 130, protein: 9, carbs: 20, fat: 2, per: '1 bowl' },
+  { name: 'شوربة دجاج (Chicken soup)', calories: 95, protein: 10, carbs: 8, fat: 2.5, per: '1 bowl' },
+  { name: 'هريسة (Harees)', calories: 210, protein: 12, carbs: 30, fat: 5, per: '1 bowl' },
+  { name: 'مرقة لحم (Lamb stew)', calories: 180, protein: 16, carbs: 10, fat: 8, per: '1 bowl' },
+  // Grilled & meat
+  { name: 'دجاج مشوي (Grilled chicken)', calories: 165, protein: 31, carbs: 0, fat: 3.6, per: '100g' },
+  { name: 'سمك مشوي (Grilled fish)', calories: 140, protein: 26, carbs: 0, fat: 3.5, per: '100g' },
+  { name: 'لحم مشوي (Grilled lamb)', calories: 250, protein: 26, carbs: 0, fat: 16, per: '100g' },
+  { name: 'جمبري مشوي (Grilled shrimp)', calories: 99, protein: 24, carbs: 0, fat: 0.3, per: '100g' },
+  // Breakfast
+  { name: 'بيض مقلي (Fried eggs)', calories: 90, protein: 6, carbs: 0.4, fat: 7, per: '1 egg' },
+  { name: 'فول نابت (Bean sprouts)', calories: 45, protein: 4, carbs: 6, fat: 0.5, per: '1 cup' },
+  { name: 'جبن أبيض (White cheese)', calories: 260, protein: 14, carbs: 2, fat: 22, per: '100g' },
+  { name: 'عسل (Honey)', calories: 304, protein: 0.3, carbs: 82, fat: 0, per: '100g' },
+  { name: 'قشطة (Qishta cream)', calories: 195, protein: 3, carbs: 4, fat: 19, per: '100g' },
+  // Sweets & desserts
+  { name: 'كنافة (Kunafa)', calories: 380, protein: 8, carbs: 52, fat: 17, per: '1 serving' },
+  { name: 'بقلاوة (Baklava)', calories: 334, protein: 5, carbs: 40, fat: 18, per: '2 pieces' },
+  { name: 'أم علي (Om Ali)', calories: 350, protein: 8, carbs: 42, fat: 18, per: '1 bowl' },
+  { name: 'لقيمات (Luqaimat)', calories: 65, protein: 1.2, carbs: 9, fat: 3, per: '1 piece' },
+  { name: 'حلوى تمر (Date sweet)', calories: 320, protein: 3, carbs: 62, fat: 8, per: '100g' },
+  // Drinks
+  { name: 'قهوة عربية (Arabic coffee)', calories: 5, protein: 0.2, carbs: 0.8, fat: 0.1, per: '1 cup' },
+  { name: 'شاي بالحليب (Tea with milk)', calories: 45, protein: 2, carbs: 6, fat: 1.5, per: '1 cup' },
+  { name: 'عصير تمر هندي (Tamarind juice)', calories: 120, protein: 0.5, carbs: 30, fat: 0.1, per: '1 cup' },
+  { name: 'لبن (Laban drink)', calories: 60, protein: 3.4, carbs: 4.8, fat: 3.2, per: '1 cup' },
+  { name: 'ماء زهر (Rose water drink)', calories: 20, protein: 0, carbs: 5, fat: 0, per: '1 cup' },
 ]
 
 const QUICK_FOODS = {
