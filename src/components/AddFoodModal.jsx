@@ -15,6 +15,77 @@ const ARABIC_FOODS = [
   { name: 'فلافل (Falafel)', calories: 57, protein: 2.3, carbs: 5.4, fat: 3, per: '1 piece' },
 ]
 
+const QUICK_FOODS = {
+  '🥚 Breakfast': [
+    { name: 'Egg (boiled)', calories: 78, protein: 6, carbs: 0.6, fat: 5, per: '1 egg' },
+    { name: 'Egg (fried)', calories: 90, protein: 6, carbs: 0.4, fat: 7, per: '1 egg' },
+    { name: 'Whole milk', calories: 149, protein: 8, carbs: 12, fat: 8, per: '1 cup' },
+    { name: 'White bread', calories: 79, protein: 2.7, carbs: 15, fat: 1, per: '1 slice' },
+    { name: 'Butter', calories: 102, protein: 0.1, carbs: 0, fat: 11.5, per: '1 tbsp' },
+    { name: 'Labneh', calories: 45, protein: 3, carbs: 2, fat: 3, per: '1 tbsp' },
+    { name: 'Cheese slice', calories: 113, protein: 7, carbs: 0.4, fat: 9, per: '1 slice' },
+    { name: 'Oats (cooked)', calories: 166, protein: 6, carbs: 28, fat: 4, per: '1 cup' },
+    { name: 'Banana', calories: 105, protein: 1.3, carbs: 27, fat: 0.4, per: '1 medium' },
+    { name: 'Orange juice', calories: 112, protein: 1.7, carbs: 26, fat: 0.5, per: '1 cup' },
+  ],
+  '🍗 Protein': [
+    { name: 'Chicken breast (grilled)', calories: 165, protein: 31, carbs: 0, fat: 3.6, per: '100g' },
+    { name: 'Chicken thigh (grilled)', calories: 209, protein: 26, carbs: 0, fat: 11, per: '100g' },
+    { name: 'Tuna (canned)', calories: 116, protein: 26, carbs: 0, fat: 1, per: '100g' },
+    { name: 'Salmon (grilled)', calories: 208, protein: 20, carbs: 0, fat: 13, per: '100g' },
+    { name: 'Ground beef (lean)', calories: 215, protein: 26, carbs: 0, fat: 12, per: '100g' },
+    { name: 'Shrimp (cooked)', calories: 99, protein: 24, carbs: 0, fat: 0.3, per: '100g' },
+    { name: 'Eggs (2 scrambled)', calories: 182, protein: 12, carbs: 1.6, fat: 14, per: '2 eggs' },
+    { name: 'Greek yogurt', calories: 100, protein: 17, carbs: 6, fat: 0.7, per: '170g' },
+  ],
+  '🍚 Carbs': [
+    { name: 'White rice (cooked)', calories: 206, protein: 4.3, carbs: 45, fat: 0.4, per: '1 cup' },
+    { name: 'Brown rice (cooked)', calories: 216, protein: 5, carbs: 45, fat: 1.8, per: '1 cup' },
+    { name: 'Pasta (cooked)', calories: 220, protein: 8, carbs: 43, fat: 1.3, per: '1 cup' },
+    { name: 'Potato (boiled)', calories: 87, protein: 1.9, carbs: 20, fat: 0.1, per: '100g' },
+    { name: 'Sweet potato', calories: 103, protein: 2.3, carbs: 24, fat: 0.1, per: '100g' },
+    { name: 'Pita bread', calories: 165, protein: 5.5, carbs: 33, fat: 0.7, per: '1 piece' },
+    { name: 'Tortilla wrap', calories: 146, protein: 3.8, carbs: 25, fat: 3.5, per: '1 wrap' },
+  ],
+  '🥗 Vegetables': [
+    { name: 'Salad (mixed greens)', calories: 15, protein: 1.3, carbs: 2.5, fat: 0.2, per: '1 cup' },
+    { name: 'Tomato', calories: 22, protein: 1.1, carbs: 4.8, fat: 0.2, per: '1 medium' },
+    { name: 'Cucumber', calories: 16, protein: 0.7, carbs: 3.6, fat: 0.1, per: '1 cup' },
+    { name: 'Broccoli (steamed)', calories: 55, protein: 3.7, carbs: 11, fat: 0.6, per: '1 cup' },
+    { name: 'Olive oil', calories: 119, protein: 0, carbs: 0, fat: 13.5, per: '1 tbsp' },
+  ],
+  '🍎 Fruits': [
+    { name: 'Apple', calories: 95, protein: 0.5, carbs: 25, fat: 0.3, per: '1 medium' },
+    { name: 'Banana', calories: 105, protein: 1.3, carbs: 27, fat: 0.4, per: '1 medium' },
+    { name: 'Mango', calories: 135, protein: 1.1, carbs: 35, fat: 0.6, per: '1 cup' },
+    { name: 'Watermelon', calories: 86, protein: 1.7, carbs: 22, fat: 0.4, per: '2 cups' },
+    { name: 'Grapes', calories: 104, protein: 1.1, carbs: 27, fat: 0.2, per: '1 cup' },
+    { name: 'Strawberries', calories: 49, protein: 1, carbs: 12, fat: 0.5, per: '1 cup' },
+  ],
+  '🥤 Drinks': [
+    { name: 'Water', calories: 0, protein: 0, carbs: 0, fat: 0, per: '1 glass' },
+    { name: 'Black coffee', calories: 2, protein: 0.3, carbs: 0, fat: 0, per: '1 cup' },
+    { name: 'Coffee with milk', calories: 58, protein: 3, carbs: 5, fat: 2.5, per: '1 cup' },
+    { name: 'Green tea', calories: 2, protein: 0, carbs: 0.5, fat: 0, per: '1 cup' },
+    { name: 'Orange juice', calories: 112, protein: 1.7, carbs: 26, fat: 0.5, per: '1 cup' },
+    { name: 'Protein shake', calories: 130, protein: 25, carbs: 5, fat: 2, per: '1 scoop' },
+  ],
+  '🍔 Fast food': [
+    { name: 'Burger (plain)', calories: 354, protein: 20, carbs: 29, fat: 17, per: '1 burger' },
+    { name: 'Fries (medium)', calories: 365, protein: 4, carbs: 48, fat: 17, per: '1 serving' },
+    { name: 'Pizza slice', calories: 285, protein: 12, carbs: 36, fat: 10, per: '1 slice' },
+    { name: 'Hot dog', calories: 290, protein: 10, carbs: 24, fat: 17, per: '1 hot dog' },
+    { name: 'Fried chicken piece', calories: 320, protein: 22, carbs: 14, fat: 19, per: '1 piece' },
+  ],
+  '🍫 Snacks': [
+    { name: 'Almonds', calories: 164, protein: 6, carbs: 6, fat: 14, per: '28g (handful)' },
+    { name: 'Chocolate (dark)', calories: 170, protein: 2, carbs: 13, fat: 12, per: '30g' },
+    { name: 'Chips', calories: 152, protein: 2, carbs: 15, fat: 10, per: '28g' },
+    { name: 'Protein bar', calories: 200, protein: 20, carbs: 22, fat: 6, per: '1 bar' },
+    { name: 'Yogurt (plain)', calories: 100, protein: 5, carbs: 11, fat: 4, per: '170g' },
+  ],
+}
+
 const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack']
 
 function getCurrentMeal() {
@@ -68,10 +139,13 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
   async function handleAIScan(e) {
     const file = e.target.files?.[0]
     if (!file) return
+
+    // check free scan limit for guest users
     if (!user && scansUsed >= 3) {
       setShowUpgrade(true)
       return
     }
+
     setAiError('')
     setAiLoading(true)
     try {
@@ -93,9 +167,12 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
         return
       }
       if (food.error) throw new Error(food.error)
+
+      // update local scan count
       const newCount = scansUsed + 1
       localStorage.setItem('scan_count', newCount)
       setScansUsed(newCount)
+
       setSelected(food)
       setPortion(100)
       setTab('confirm')
@@ -164,10 +241,10 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
         </div>
 
         {tab !== 'confirm' && (
-          <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-            {[['search', '🔍 Search'], ['arabic', '🌙 Arabic'], ['scan', '📸 AI Scan'], ['custom', '✏️ Custom']].map(([t, label]) => (
+          <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
+            {[['search', '🔍'], ['quick', '⚡'], ['arabic', '🌙'], ['scan', '📸'], ['custom', '✏️']].map(([t, label]) => (
               <button key={t} onClick={() => setTab(t)} style={{
-                flex: 1, padding: '8px 4px', borderRadius: 10, fontSize: 11, fontWeight: 500,
+                flex: 1, padding: '8px 4px', borderRadius: 10, fontSize: 13, fontWeight: 500,
                 background: tab === t ? '#a8e063' : 'rgba(255,255,255,0.06)',
                 color: tab === t ? '#0e0e0f' : '#888'
               }}>{label}</button>
@@ -202,6 +279,30 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
               )}
             </div>
           </>
+        )}
+
+        {tab === 'quick' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {Object.entries(QUICK_FOODS).map(([category, foods]) => (
+              <div key={category}>
+                <div style={{ fontSize: 12, color: '#666', fontWeight: 500, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{category}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {foods.map((item, i) => (
+                    <button key={i} onClick={() => selectFood(item)} style={{
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 10, textAlign: 'left', width: '100%'
+                    }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, color: '#f0f0f0', marginBottom: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
+                        <div style={{ fontSize: 11, color: '#555' }}>{item.per} · P {item.protein}g · C {item.carbs}g · F {item.fat}g</div>
+                      </div>
+                      <div style={{ fontSize: 15, fontWeight: 500, color: '#a8e063', marginLeft: 10, flexShrink: 0 }}>{item.calories}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
 
         {tab === 'arabic' && (
