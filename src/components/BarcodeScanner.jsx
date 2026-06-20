@@ -51,8 +51,15 @@ export default function BarcodeScanner({ onResult, onClose }) {
         return
       }
       const p = data.product
+      const name = p.product_name_en || p.product_name_ar || p.product_name || p.abbreviated_product_name || 'Unknown product'
+      // skip test/placeholder products
+      if (name.toLowerCase().includes('test') || name.toLowerCase().includes('testprodukt')) {
+        setBarcodeError('Product not found in database. Try searching by name.')
+        setLooking(false)
+        return
+      }
       const food = {
-        name: p.product_name || p.abbreviated_product_name || 'Unknown product',
+        name,
         calories: Math.round(p.nutriments?.['energy-kcal_100g'] || 0),
         protein: Math.round((p.nutriments?.proteins_100g || 0) * 10) / 10,
         carbs: Math.round((p.nutriments?.carbohydrates_100g || 0) * 10) / 10,
