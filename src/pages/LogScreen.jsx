@@ -19,9 +19,34 @@ export default function LogScreen({ allEntries }) {
     return Math.round(entries.reduce((sum, e) => sum + (e.calories || 0), 0))
   }
 
+  function exportCSV() {
+    const rows = [['Date', 'Time', 'Food', 'Meal', 'Calories', 'Protein (g)', 'Carbs (g)', 'Fat (g)', 'Portion (g)']]
+    Object.keys(allEntries).sort().forEach(date => {
+      (allEntries[date] || []).forEach(e => {
+        rows.push([date, e.time || '', e.name, e.meal || '', Math.round(e.calories || 0), Math.round(e.protein || 0), Math.round(e.carbs || 0), Math.round(e.fat || 0), e.portion || 100])
+      })
+    })
+    const csv = rows.map(r => r.join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'mizan-food-log.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '24px 20px 90px' }}>
-      <h2 style={{ fontSize: 22, fontWeight: 500, marginBottom: 24 }}>Food log</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 500 }}>Food log</h2>
+        {dates.length > 0 && (
+          <button onClick={exportCSV} style={{
+            background: 'rgba(168,224,99,0.1)', borderRadius: 10, padding: '7px 14px',
+            color: '#a8e063', fontSize: 13, fontWeight: 500
+          }}>Export CSV</button>
+        )}
+      </div>
 
       {dates.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 0', color: '#444' }}>
@@ -43,7 +68,7 @@ export default function LogScreen({ allEntries }) {
                 }}>
                   <div>
                     <div style={{ fontSize: 14, color: '#f0f0f0', marginBottom: 2 }}>{entry.name}</div>
-                    <div style={{ fontSize: 12, color: '#555' }}>{entry.time}</div>
+                    <div style={{ fontSize: 12, color: '#555' }}>{entry.time}{entry.meal ? ` · ${entry.meal}` : ''}</div>
                   </div>
                   <span style={{ fontSize: 15, fontWeight: 500, color: '#a8e063', alignSelf: 'center' }}>{Math.round(entry.calories)}</span>
                 </div>

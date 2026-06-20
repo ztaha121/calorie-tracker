@@ -160,6 +160,9 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
     protein: editEntry.protein, carbs: editEntry.carbs, fat: editEntry.fat
   } : { name: '', calories: '', protein: '', carbs: '', fat: '' })
   const cameraRef = useRef()
+  const [templates, setTemplates] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('meal_templates') || '[]') } catch { return [] }
+  })
 
   const { canScan, scansLeft, isPremium, incrementScan } = useScanLimit(user)
 
@@ -300,7 +303,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
 
         {tab !== 'confirm' && (
           <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
-            {[['search', '🔍'], ['quick', '⚡'], ['arabic', '🌙'], ['scan', '📸'], ['custom', '✏️']].map(([t, label]) => (
+            {[['search', '🔍'], ['quick', '⚡'], ['arabic', '🌙'], ['scan', '📸'], ['templates', '⭐'], ['custom', '✏️']].map(([t, label]) => (
               <button key={t} onClick={() => setTab(t)} style={{
                 flex: 1, padding: '8px 4px', borderRadius: 10, fontSize: 13, fontWeight: 500,
                 background: tab === t ? '#a8e063' : 'rgba(255,255,255,0.06)',
@@ -424,6 +427,31 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
           </div>
         )}
 
+
+        {tab === 'templates' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {templates.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 0', color: '#444' }}>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>⭐</div>
+                <div style={{ fontSize: 14 }}>No saved meals yet.<br />Add a food and tap ⭐ to save it as a template.</div>
+              </div>
+            ) : (
+              templates.map((t, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '12px 14px' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: '#f0f0f0', marginBottom: 2 }}>{t.name}</div>
+                    <div style={{ fontSize: 12, color: '#555' }}>{t.calories} kcal · P {t.protein}g · C {t.carbs}g · F {t.fat}g</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, marginLeft: 10 }}>
+                    <button onClick={() => selectFood(t)} style={{ background: '#a8e063', borderRadius: 8, padding: '6px 12px', color: '#0e0e0f', fontSize: 13, fontWeight: 500 }}>Add</button>
+                    <button onClick={() => { const next = templates.filter((_, j) => j !== i); setTemplates(next); localStorage.setItem('meal_templates', JSON.stringify(next)) }} style={{ background: 'rgba(255,107,107,0.1)', borderRadius: 8, width: 28, height: 28, color: '#ff6b6b', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
         {tab === 'custom' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <input style={inputStyle} placeholder="Food name" value={custom.name} onChange={e => setCustom(p => ({ ...p, name: e.target.value }))} />
@@ -474,6 +502,13 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                 flex: 2, padding: '13px', background: '#a8e063',
                 borderRadius: 12, color: '#0e0e0f', fontWeight: 600, fontSize: 15
               }}>Add to {meal}</button>
+              <button onClick={() => {
+                const t = { name: selected.name, calories: scaled.calories, protein: scaled.protein, carbs: scaled.carbs, fat: scaled.fat, per: `${portion}g` }
+                const next = [...templates.filter(x => x.name !== t.name), t]
+                setTemplates(next)
+                localStorage.setItem('meal_templates', JSON.stringify(next))
+                alert('⭐ Saved as template!')
+              }} style={{ padding: '10px', background: 'rgba(255,255,255,0.04)', borderRadius: 12, color: '#888', fontSize: 13 }}>⭐ Save as template</button>
             </div>
           </div>
         )}

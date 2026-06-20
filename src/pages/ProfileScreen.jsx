@@ -160,6 +160,7 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals })
       <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center', gap: 16 }}>
         <a href="/privacy.html" style={{ fontSize: 12, color: '#444', textDecoration: 'none' }}>Privacy Policy</a>
         <a href="/terms.html" style={{ fontSize: 12, color: '#444', textDecoration: 'none' }}>Terms of Service</a>
+        <a href="/about.html" style={{ fontSize: 12, color: '#444', textDecoration: 'none' }}>About</a>
       </div>
     </div>
   )
