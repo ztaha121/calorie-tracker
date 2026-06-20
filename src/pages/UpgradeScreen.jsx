@@ -15,7 +15,7 @@ export default function UpgradeScreen({ onClose, scansUsed = 3, user }) {
   ]
 
   function handleUpgrade() {
-    window.location.href = 'https://buy.stripe.com/test_fZu4gAfqb5l4cKfdW967S00'
+    window.location.href = 'https://calorie-tracker.lemonsqueezy.com/checkout/buy/dcfeff6d-dfd3-4617-b1c2-bfe200389807?redirect_url=https://calorie-tracker-fawn-sigma.vercel.app?upgraded=true'
   }
 
   return (
