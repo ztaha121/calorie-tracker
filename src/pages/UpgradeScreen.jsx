@@ -1,10 +1,41 @@
-export default function UpgradeScreen({ onClose, scansUsed = 3 }) {
+import { useState } from 'react'
+
+const SUPABASE_URL = 'https://rnwsnnvdgsxqamvofhno.supabase.co'
+
+export default function UpgradeScreen({ onClose, scansUsed = 3, user }) {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
   const features = [
     'Unlimited AI food scans',
     'Scan any meal — just point and shoot',
     'Works with Arabic & international foods',
+    'Syncs across all your devices',
     'Priority support',
   ]
+
+  async function handleUpgrade() {
+    setLoading(true)
+    setError('')
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user?.id || 'guest',
+          email: user?.email || '',
+          successUrl: `${window.location.origin}?upgraded=true`,
+          cancelUrl: window.location.origin,
+        })
+      })
+      const data = await response.json()
+      if (data.error) throw new Error(data.error)
+      window.location.href = data.url
+    } catch (err) {
+      setError('Payment failed to load. Please try again.')
+    }
+    setLoading(false)
+  }
 
   return (
     <div style={{
@@ -34,7 +65,6 @@ export default function UpgradeScreen({ onClose, scansUsed = 3 }) {
           </p>
         </div>
 
-        {/* pricing card */}
         <div style={{
           background: 'rgba(168,224,99,0.08)', border: '1px solid rgba(168,224,99,0.25)',
           borderRadius: 16, padding: '20px', marginBottom: 20, textAlign: 'center'
@@ -47,7 +77,6 @@ export default function UpgradeScreen({ onClose, scansUsed = 3 }) {
           <div style={{ fontSize: 13, color: '#555' }}>Cancel anytime</div>
         </div>
 
-        {/* features */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
           {features.map((f, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -61,15 +90,25 @@ export default function UpgradeScreen({ onClose, scansUsed = 3 }) {
           ))}
         </div>
 
-        <button
-          onClick={() => alert('Stripe coming soon! Deploy to Vercel first, then we add payments.')}
-          style={{
+        {error && <p style={{ color: '#ff6b6b', fontSize: 13, textAlign: 'center', marginBottom: 12 }}>{error}</p>}
+
+        {!user ? (
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ color: '#666', fontSize: 14, marginBottom: 12 }}>You need an account to upgrade.</p>
+            <button onClick={() => { localStorage.removeItem('skip_auth'); location.reload() }} style={{
+              width: '100%', padding: '16px', background: '#a8e063',
+              borderRadius: 14, color: '#0e0e0f', fontSize: 16, fontWeight: 600, marginBottom: 12
+            }}>Create account</button>
+          </div>
+        ) : (
+          <button onClick={handleUpgrade} disabled={loading} style={{
             width: '100%', padding: '16px', background: '#a8e063',
             borderRadius: 14, color: '#0e0e0f', fontSize: 16, fontWeight: 600,
-            marginBottom: 12
+            marginBottom: 12, opacity: loading ? 0.7 : 1
           }}>
-          Upgrade for $2.99/month
-        </button>
+            {loading ? 'Loading checkout...' : 'Upgrade for $2.99/month'}
+          </button>
+        )}
 
         <button onClick={onClose} style={{
           width: '100%', padding: '12px', background: 'none',
