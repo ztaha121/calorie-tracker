@@ -172,15 +172,15 @@ function EntryRow({ entry, onRemove, onEdit }) {
     }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 500, color: '#f0f0f0', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.name}</div>
-        <div style={{ fontSize: 12, color: '#555' }}>{entry.time}{entry.per ? ` · ${entry.per}` : ''} · P {Math.round(entry.protein)}g · C {Math.round(entry.carbs)}g</div>
+        <div style={{ fontSize: 12, color: '#555' }}>{entry.time}{entry.per ? ` · ${entry.per}` : ''} · P {Math.round(entry.protein || 0)}g · C {Math.round(entry.carbs || 0)}g</div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 10 }}>
-        <span style={{ fontSize: 15, fontWeight: 500, color: '#a8e063' }}>{Math.round(entry.calories)}</span>
+        <span style={{ fontSize: 15, fontWeight: 500, color: '#a8e063' }}>{Math.round(entry.calories || 0)}</span>
         <button onClick={() => onEdit(entry)} style={{
           background: 'rgba(255,255,255,0.06)', borderRadius: 8, width: 28, height: 28,
           color: '#888', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>✏️</button>
-        <button onClick={() => onRemove(entry.id)} style={{
+        <button onClick={() => { if (window.confirm('Delete this entry?')) onRemove(entry.id) }} style={{
           background: 'rgba(255,107,107,0.1)', borderRadius: 8, width: 28, height: 28,
           color: '#ff6b6b', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>×</button>
