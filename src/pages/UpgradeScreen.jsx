@@ -29,9 +29,11 @@ export default function UpgradeScreen({ onClose, scansUsed = 3, user }) {
         })
       })
       const data = await response.json()
+      console.log('Checkout response:', data)
       if (data.error) throw new Error(data.error)
       window.location.href = data.url
     } catch (err) {
+      console.log('Upgrade error:', err.message)
       setError('Payment failed to load. Please try again.')
     }
     setLoading(false)
