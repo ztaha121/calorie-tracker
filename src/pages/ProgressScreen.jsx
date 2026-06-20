@@ -24,16 +24,40 @@ export default function ProgressScreen({ allEntries, goal }) {
     return s
   })()
 
+  // weekly summary
+  const daysUnderGoal = days.filter(d => d.calories > 0 && d.calories <= goal).length
+  const daysLogged = days.filter(d => d.calories > 0).length
+  const weeklyMessage = (() => {
+    if (daysLogged === 0) return { text: "Start logging today — every meal counts.", color: '#555', emoji: '🌱' }
+    if (daysUnderGoal === 7) return { text: "Perfect week! You hit your goal every day.", color: '#a8e063', emoji: '🏆' }
+    if (daysUnderGoal >= 5) return { text: `Great week! You hit your goal ${daysUnderGoal}/7 days.`, color: '#a8e063', emoji: '🎯' }
+    if (daysUnderGoal >= 3) return { text: `Good progress — ${daysUnderGoal}/7 days under goal this week.`, color: '#ffd166', emoji: '💪' }
+    if (daysLogged >= 5) return { text: `You logged ${daysLogged}/7 days. Consistency is the goal.`, color: '#ffd166', emoji: '📈' }
+    return { text: "Every day you log is a win. Keep going.", color: '#888', emoji: '✨' }
+  })()
+
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '24px 20px 90px' }}>
-      <h2 style={{ fontSize: 22, fontWeight: 500, marginBottom: 24 }}>Progress</h2>
+      <h2 style={{ fontSize: 22, fontWeight: 500, marginBottom: 20 }}>Progress</h2>
+
+      {/* weekly summary card */}
+      <div style={{
+        background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '16px 18px',
+        marginBottom: 24, display: 'flex', alignItems: 'center', gap: 14
+      }}>
+        <div style={{ fontSize: 32 }}>{weeklyMessage.emoji}</div>
+        <div>
+          <div style={{ fontSize: 11, color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>This week</div>
+          <div style={{ fontSize: 14, color: weeklyMessage.color, lineHeight: 1.5 }}>{weeklyMessage.text}</div>
+        </div>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 28 }}>
         {[
           { label: 'Avg calories', value: avgCal ? `${avgCal}` : '—', unit: avgCal ? 'kcal/day' : '' },
           { label: 'Logging streak', value: streak, unit: streak === 1 ? 'day' : 'days' },
           { label: 'Days logged', value: totalDays, unit: 'total' },
-          { label: 'Daily goal', value: goal, unit: 'kcal' },
+          { label: 'Goal days', value: daysUnderGoal, unit: 'this week' },
         ].map(stat => (
           <div key={stat.label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: '16px 14px' }}>
             <div style={{ fontSize: 11, color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{stat.label}</div>
