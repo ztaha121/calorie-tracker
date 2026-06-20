@@ -156,7 +156,9 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals })
 
       {user ? (
         <>
-          <button onClick={() => { window.location.href = 'https://app.lemonsqueezy.com/my-orders' }} style={{
+          <button onClick={() => {
+            alert('To manage or cancel your subscription, check your email receipt from Mizan/Lemon Squeezy and click "Manage subscription".')
+          }} style={{
             width: '100%', padding: '14px', background: 'rgba(255,255,255,0.04)',
             borderRadius: 14, color: '#666', fontSize: 15, fontWeight: 500,
             marginBottom: 10
