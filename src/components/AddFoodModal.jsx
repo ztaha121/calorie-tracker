@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import UpgradeScreen from '../pages/UpgradeScreen.jsx'
 import { useScanLimit } from '../hooks/useScanLimit.js'
+import BarcodeScanner from './BarcodeScanner.jsx'
 
 const ARABIC_FOODS = [
   // Staples
@@ -152,6 +153,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState('')
   const [showUpgrade, setShowUpgrade] = useState(false)
+  const [showBarcode, setShowBarcode] = useState(false)
   const [selected, setSelected] = useState(null)
   const [portion, setPortion] = useState(isEdit ? (editEntry.portion || 100) : 100)
   const [meal, setMeal] = useState(isEdit ? (editEntry.meal || getCurrentMeal()) : getCurrentMeal())
@@ -459,14 +461,13 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
               <>
                 <div style={{ fontSize: 48 }}>📦</div>
                 <div style={{ fontSize: 15, color: '#888', textAlign: 'center', lineHeight: 1.6 }}>
-                  Scan a product barcode or type the barcode number to get nutrition info.
+                  Scan a product barcode to get nutrition info automatically.
                 </div>
                 {barcodeError && <p style={{ color: '#ff6b6b', fontSize: 13, textAlign: 'center' }}>{barcodeError}</p>}
-                <input ref={barcodeRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleBarcodeScan} />
-                <button onClick={() => barcodeRef.current?.click()} style={{
+                <button onClick={() => setShowBarcode(true)} style={{
                   width: '100%', padding: '15px', background: '#a8e063',
                   borderRadius: 14, color: '#0e0e0f', fontSize: 16, fontWeight: 600
-                }}>📷 Scan barcode</button>
+                }}>📷 Open barcode scanner</button>
                 <div style={{ width: '100%', display: 'flex', gap: 8 }}>
                   <input
                     style={{ flex: 1, padding: '12px 14px', background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#f0f0f0', fontSize: 15 }}
@@ -615,6 +616,17 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
         )}
       </div>
       {showUpgrade && <UpgradeScreen onClose={() => setShowUpgrade(false)} scansUsed={3 - scansLeft} user={user} />}
+      {showBarcode && (
+        <BarcodeScanner
+          onClose={() => setShowBarcode(false)}
+          onResult={(food) => {
+            setShowBarcode(false)
+            setSelected(food)
+            setPortion(100)
+            setTab('confirm')
+          }}
+        />
+      )}
     </div>
   )
 }
