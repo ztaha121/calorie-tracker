@@ -36,6 +36,10 @@ export default function App() {
   })
 
   useEffect(() => {
+    // apply saved theme
+    const savedTheme = localStorage.getItem('theme') || 'dark'
+    document.documentElement.setAttribute('data-theme', savedTheme)
+
     // register service worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').then(reg => {

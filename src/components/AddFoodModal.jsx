@@ -61,6 +61,26 @@ const ARABIC_FOODS = [
   { name: 'عصير تمر هندي (Tamarind juice)', calories: 120, protein: 0.5, carbs: 30, fat: 0.1, per: '1 cup' },
   { name: 'لبن (Laban drink)', calories: 60, protein: 3.4, carbs: 4.8, fat: 3.2, per: '1 cup' },
   { name: 'ماء زهر (Rose water drink)', calories: 20, protein: 0, carbs: 5, fat: 0, per: '1 cup' },
+  // Moroccan foods
+  { name: 'طاجين دجاج (Chicken Tagine)', calories: 280, protein: 24, carbs: 18, fat: 12, per: '1 serving' },
+  { name: 'طاجين لحم (Lamb Tagine)', calories: 320, protein: 26, carbs: 20, fat: 14, per: '1 serving' },
+  { name: 'كسكس (Couscous)', calories: 176, protein: 6, carbs: 36, fat: 0.3, per: '1 cup cooked' },
+  { name: 'كسكس بالخضار (Vegetable Couscous)', calories: 220, protein: 7, carbs: 40, fat: 4, per: '1 serving' },
+  { name: 'حريرة (Harira soup)', calories: 120, protein: 7, carbs: 18, fat: 2.5, per: '1 bowl' },
+  { name: 'بستيلة (Bastilla)', calories: 380, protein: 18, carbs: 32, fat: 20, per: '1 serving' },
+  { name: 'مشوي (Mechoui lamb)', calories: 290, protein: 28, carbs: 0, fat: 19, per: '100g' },
+  { name: 'خبز مغربي (Moroccan bread)', calories: 155, protein: 5, carbs: 30, fat: 2, per: '1 piece' },
+  { name: 'بريوات (Briouats)', calories: 95, protein: 4, carbs: 10, fat: 5, per: '1 piece' },
+  { name: 'معقودة (Makouda)', calories: 130, protein: 3, carbs: 18, fat: 6, per: '2 pieces' },
+  { name: 'زعلوك (Zaalouk)', calories: 85, protein: 2, carbs: 10, fat: 4.5, per: '100g' },
+  { name: 'تكتوكة (Taktouka)', calories: 75, protein: 2, carbs: 9, fat: 4, per: '100g' },
+  { name: 'مرقة (Moroccan broth)', calories: 45, protein: 4, carbs: 4, fat: 1.5, per: '1 bowl' },
+  { name: 'شباكية (Chebakia)', calories: 180, protein: 3, carbs: 22, fat: 10, per: '2 pieces' },
+  { name: 'غريبة (Ghriba cookies)', calories: 120, protein: 2, carbs: 16, fat: 6, per: '2 cookies' },
+  { name: 'سلو (Sellou)', calories: 420, protein: 10, carbs: 48, fat: 22, per: '100g' },
+  { name: 'عصير أفوكا (Avocado juice)', calories: 180, protein: 2, carbs: 22, fat: 10, per: '1 glass' },
+  { name: 'شاي بالنعناع (Mint tea)', calories: 60, protein: 0, carbs: 15, fat: 0, per: '1 glass' },
+  { name: 'قهوة بالحليب (Coffee with milk)', calories: 55, protein: 2.5, carbs: 5, fat: 2.5, per: '1 cup' },
 ]
 
 const QUICK_FOODS = {

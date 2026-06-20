@@ -16,6 +16,16 @@
   --radius-sm: 10px;
 }
 
+[data-theme="light"] {
+  --bg: #fafaf8;
+  --bg-card: #ffffff;
+  --bg-input: #f0f0ee;
+  --border: rgba(0,0,0,0.08);
+  --text: #1a1a1a;
+  --text-muted: #555;
+  --text-hint: #999;
+}
+
 html { height: 100%; }
 
 body {

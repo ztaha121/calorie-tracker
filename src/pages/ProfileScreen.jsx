@@ -10,6 +10,7 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals })
   const [fat, setFat] = useState(macroGoals.fat)
 
   const [notifEnabled, setNotifEnabled] = useState(() => localStorage.getItem('notif_enabled') === 'true')
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') !== 'light')
 
   async function toggleNotifications() {
     if (notifEnabled) {
@@ -94,6 +95,29 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals })
               width: 20, height: 20, borderRadius: 99, background: '#fff',
               position: 'absolute', top: 3,
               left: notifEnabled ? 25 : 3,
+              transition: 'left 0.2s'
+            }} />
+          </button>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderTop: '0.5px solid rgba(255,255,255,0.05)' }}>
+          <div>
+            <div style={{ fontSize: 14, color: '#f0f0f0', marginBottom: 2 }}>Appearance</div>
+            <div style={{ fontSize: 12, color: '#555' }}>{isDark ? 'Dark mode' : 'Light mode'}</div>
+          </div>
+          <button onClick={() => {
+            const next = !isDark
+            setIsDark(next)
+            localStorage.setItem('theme', next ? 'dark' : 'light')
+            document.documentElement.setAttribute('data-theme', next ? 'dark' : 'light')
+          }} style={{
+            width: 48, height: 26, borderRadius: 99,
+            background: !isDark ? '#a8e063' : 'rgba(255,255,255,0.1)',
+            position: 'relative', transition: 'background 0.2s', flexShrink: 0
+          }}>
+            <div style={{
+              width: 20, height: 20, borderRadius: 99, background: '#fff',
+              position: 'absolute', top: 3,
+              left: !isDark ? 25 : 3,
               transition: 'left 0.2s'
             }} />
           </button>
