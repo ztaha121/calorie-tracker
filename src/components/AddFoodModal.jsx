@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import UpgradeScreen from '../pages/UpgradeScreen.jsx'
 import { useScanLimit } from '../hooks/useScanLimit.js'
 import BarcodeScanner from './BarcodeScanner.jsx'
@@ -253,6 +253,12 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
 
   const { canScan, scansLeft, isPremium, incrementScan } = useScanLimit(user)
 
+  // expose tab setter for external shortcut buttons
+  useEffect(() => {
+    window._mizanSetTab = setTab
+    return () => { delete window._mizanSetTab }
+  }, [])
+
   async function searchFood(val) {
     const q = val ?? query
     if (!q.trim()) return
@@ -389,14 +395,30 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
         </div>
 
         {tab !== 'confirm' && (
-          <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
-            {[['search', '🔍'], ['quick', '⚡'], ['arabic', '🌙'], ['scan', '📸'], ['barcode', '📦'], ['templates', '⭐'], ['custom', '✏️']].map(([t, label]) => (
-              <button key={t} onClick={() => setTab(t)} style={{
-                flex: 1, padding: '8px 4px', borderRadius: 10, fontSize: 13, fontWeight: 500,
-                background: tab === t ? '#a8e063' : 'rgba(255,255,255,0.06)',
-                color: tab === t ? '#0e0e0f' : '#888'
-              }}>{label}</button>
-            ))}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+              {[
+                { id: 'search', icon: '🔍', label: 'Search' },
+                { id: 'quick', icon: '⚡', label: 'Quick' },
+                { id: 'arabic', icon: '🌙', label: 'Arabic' },
+                { id: 'scan', icon: '📸', label: 'AI Scan' },
+                { id: 'barcode', icon: '📦', label: 'Barcode' },
+                { id: 'templates', icon: '⭐', label: 'Saved' },
+                { id: 'custom', icon: '✏️', label: 'Custom' },
+              ].map(({ id, icon, label }) => (
+                <button key={id} onClick={() => setTab(id)} style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                  padding: '10px 14px', borderRadius: 14, whiteSpace: 'nowrap', flexShrink: 0,
+                  background: tab === id ? '#a8e063' : 'rgba(255,255,255,0.06)',
+                  color: tab === id ? '#0e0e0f' : '#777',
+                  border: tab === id ? 'none' : '0.5px solid rgba(255,255,255,0.06)',
+                  transition: 'all 0.15s'
+                }}>
+                  <span style={{ fontSize: 20 }}>{icon}</span>
+                  <span style={{ fontSize: 11, fontWeight: 500 }}>{label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 

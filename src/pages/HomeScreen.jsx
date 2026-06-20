@@ -21,14 +21,11 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
     fat: acc.fat + (e.fat || 0),
   }), { calories: 0, protein: 0, carbs: 0, fat: 0 })
 
-function addWater(n) {
+  function addWater(n) {
     const today = new Date().toISOString().split('T')[0]
     const next = Math.max(0, Math.min(water + n, WATER_GOAL))
     setWater(next)
     localStorage.setItem('water_' + today, next)
-    if (next === WATER_GOAL && n > 0) {
-      setTimeout(() => alert('💧 Amazing! You hit your water goal for today!'), 100)
-    }
   }
 
   function handleAdd(food) {
@@ -114,11 +111,23 @@ function addWater(n) {
         </div>
       </div>
 
-      <div style={{ padding: '0 20px 16px' }}>
+      <div style={{ padding: '0 20px 16px', display: 'flex', gap: 10 }}>
         <button onClick={() => { setEditEntry(null); setShowModal(true) }} style={{
-          width: '100%', padding: '15px', background: '#a8e063',
+          flex: 1, padding: '15px', background: '#a8e063',
           borderRadius: 14, color: '#0e0e0f', fontSize: 16, fontWeight: 600
         }}>+ Add food</button>
+        <button onClick={() => { setEditEntry(null); setShowModal(true); setTimeout(() => window._mizanSetTab?.('scan'), 100) }} style={{
+          width: 52, height: 52, background: 'rgba(168,224,99,0.15)',
+          borderRadius: 14, color: '#a8e063', fontSize: 22,
+          border: '0.5px solid rgba(168,224,99,0.3)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+        }}>📸</button>
+        <button onClick={() => { setEditEntry(null); setShowModal(true); setTimeout(() => window._mizanSetTab?.('barcode'), 100) }} style={{
+          width: 52, height: 52, background: 'rgba(168,224,99,0.15)',
+          borderRadius: 14, color: '#a8e063', fontSize: 22,
+          border: '0.5px solid rgba(168,224,99,0.3)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+        }}>📦</button>
       </div>
 
       {/* meal groups */}
