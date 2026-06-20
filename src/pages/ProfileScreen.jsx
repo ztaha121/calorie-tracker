@@ -106,6 +106,22 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals })
 
       {user ? (
         <>
+          <button onClick={() => {
+            if (navigator.share) {
+              navigator.share({
+                title: 'Mizan — AI Calorie Tracker',
+                text: 'I use Mizan to track my nutrition with AI food scanning. Try it free!',
+                url: 'https://calorie-tracker-fawn-sigma.vercel.app'
+              })
+            } else {
+              navigator.clipboard.writeText('https://calorie-tracker-fawn-sigma.vercel.app')
+              alert('Link copied!')
+            }
+          }} style={{
+            width: '100%', padding: '14px', background: 'rgba(255,255,255,0.06)',
+            borderRadius: 14, color: '#f0f0f0', fontSize: 15, fontWeight: 500,
+            marginBottom: 10
+          }}>📤 Share Mizan with a friend</button>
           <button onClick={async () => {
             const { data } = await supabase.from('profiles').select('is_premium').eq('id', user.id).single()
             if (data?.is_premium) {
