@@ -115,12 +115,13 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
   } : { name: '', calories: '', protein: '', carbs: '', fat: '' })
   const cameraRef = useRef()
 
-  async function searchFood() {
-    if (!query.trim()) return
+  async function searchFood(val) {
+    const q = val ?? query
+    if (!q.trim()) return
     setLoading(true)
     try {
       const apiKey = import.meta.env.VITE_USDA_API_KEY
-      const res = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=25&api_key=${apiKey}`)
+      const res = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(q)}&pageSize=25&api_key=${apiKey}`)
       const data = await res.json()
       const toProperCase = (str) => str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
       const seen = new Set()
@@ -267,7 +268,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
           <>
             <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
               <input style={{ ...inputStyle, flex: 1 }} placeholder="Search food..." value={query}
-                onChange={e => setQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && searchFood()} />
+                onChange={e => { setQuery(e.target.value); if (e.target.value.length > 2) searchFood(e.target.value) }} />
               <button onClick={searchFood} style={{ padding: '12px 16px', background: '#a8e063', borderRadius: 10, color: '#0e0e0f', fontWeight: 500 }}>
                 {loading ? '...' : 'Go'}
               </button>
