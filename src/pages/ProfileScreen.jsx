@@ -157,6 +157,10 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals })
       <p style={{ marginTop: 32, textAlign: 'center', fontSize: 12, color: '#333' }}>
         Mizan · Patent pending · DTH Technology
       </p>
+      <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center', gap: 16 }}>
+        <a href="/privacy.html" style={{ fontSize: 12, color: '#444', textDecoration: 'none' }}>Privacy Policy</a>
+        <a href="/terms.html" style={{ fontSize: 12, color: '#444', textDecoration: 'none' }}>Terms of Service</a>
+      </div>
     </div>
   )
 }
