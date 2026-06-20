@@ -115,13 +115,15 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
   } : { name: '', calories: '', protein: '', carbs: '', fat: '' })
   const cameraRef = useRef()
 
- async function searchFood() {
+  async function searchFood() {
     if (!query.trim()) return
     setLoading(true)
     try {
       const apiKey = import.meta.env.VITE_USDA_API_KEY
-      const res = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=10&api_key=${apiKey}`)
+      const res = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=25&api_key=${apiKey}`)
       const data = await res.json()
+      const toProperCase = (str) => str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
+      const seen = new Set()
       const items = (data.foods || [])
         .filter(f => f.foodNutrients)
         .map(f => {
@@ -130,7 +132,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
             return Math.round((n?.value || 0) * 10) / 10
           }
           return {
-            name: f.description,
+            name: toProperCase(f.description),
             calories: Math.round(get('energy') || get('calorie')),
             protein: get('protein'),
             carbs: get('carbohydrate'),
@@ -139,21 +141,25 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
           }
         })
         .filter(f => f.calories > 0)
+        .filter(f => {
+          const key = f.name.split(',')[0].trim().toLowerCase()
+          if (seen.has(key)) return false
+          seen.add(key)
+          return true
+        })
+        .slice(0, 10)
       setResults(items)
-    } catch { setResults([]) }
+    } catch(err) { console.log('search error:', err); setResults([]) }
     setLoading(false)
   }
 
   async function handleAIScan(e) {
     const file = e.target.files?.[0]
     if (!file) return
-
-    // check free scan limit for guest users
     if (!user && scansUsed >= 3) {
       setShowUpgrade(true)
       return
     }
-
     setAiError('')
     setAiLoading(true)
     try {
@@ -175,12 +181,9 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
         return
       }
       if (food.error) throw new Error(food.error)
-
-      // update local scan count
       const newCount = scansUsed + 1
       localStorage.setItem('scan_count', newCount)
       setScansUsed(newCount)
-
       setSelected(food)
       setPortion(100)
       setTab('confirm')
@@ -390,7 +393,6 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
               <div style={{ fontSize: 16, fontWeight: 500, color: '#f0f0f0', marginBottom: 4 }}>{selected.name}</div>
               <div style={{ fontSize: 13, color: '#666' }}>Adjust portion size below</div>
             </div>
-
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                 <span style={{ fontSize: 14, color: '#888' }}>Portion size</span>
@@ -402,7 +404,6 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                 <span>10g</span><span>100g</span><span>250g</span><span>500g</span>
               </div>
             </div>
-
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
               {[['Cal', scaled.calories, '#a8e063', ''], ['Pro', scaled.protein, '#f0f0f0', 'g'], ['Carb', scaled.carbs, '#ffd166', 'g'], ['Fat', scaled.fat, '#ff9f68', 'g']].map(([label, val, color, unit]) => (
                 <div key={label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
@@ -411,7 +412,6 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                 </div>
               ))}
             </div>
-
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setTab('search')} style={{
                 flex: 1, padding: '13px', background: 'rgba(255,255,255,0.06)',
