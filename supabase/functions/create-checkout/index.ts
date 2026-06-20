@@ -13,21 +13,20 @@ serve(async (req) => {
   try {
     const { userId, email, successUrl, cancelUrl } = await req.json()
 
-    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
-    if (!stripeKey) throw new Error('STRIPE_SECRET_KEY not set')
+    const stripeKey = 'STRIPE_SECRET_KEY'
 
     const priceId = 'price_1TkRCbKYIKfijaoYfXAdnrpJ'
 
-    const params = new URLSearchParams({
-      'payment_method_types[]': 'card',
-      'mode': 'subscription',
-      'line_items[0][price]': priceId,
-      'line_items[0][quantity]': '1',
-      'success_url': successUrl,
-      'cancel_url': cancelUrl,
-      'customer_email': email,
-      'metadata[user_id]': userId,
-    })
+    const body = [
+      'mode=subscription',
+      'payment_method_types[0]=card',
+      `line_items[0][price]=${priceId}`,
+      'line_items[0][quantity]=1',
+      `success_url=${encodeURIComponent(successUrl)}`,
+      `cancel_url=${encodeURIComponent(cancelUrl)}`,
+      `customer_email=${encodeURIComponent(email)}`,
+      `metadata[user_id]=${encodeURIComponent(userId)}`,
+    ].join('&')
 
     const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
@@ -35,18 +34,19 @@ serve(async (req) => {
         'Authorization': `Bearer ${stripeKey}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: params.toString()
+      body
     })
 
     const session = await response.json()
 
     if (session.error) throw new Error(session.error.message)
+    if (!session.url) throw new Error('No checkout URL returned')
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
 
-  } catch (err) {
+  } catch (err: any) {
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
