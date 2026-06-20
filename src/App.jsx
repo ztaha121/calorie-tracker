@@ -47,6 +47,18 @@ export default function App() {
       localStorage.setItem('skip_auth', 'true')
       setSkipAuth(true)
     })
+    // check if returning from Stripe payment
+    if (window.location.search.includes('upgraded=true')) {
+      window.history.replaceState({}, '', window.location.pathname)
+      supabase.auth.getSession().then(({ data }) => {
+        const uid = data.session?.user?.id
+        if (uid) {
+          supabase.from('profiles')
+            .upsert({ id: uid, is_premium: true, scan_count: 0 })
+            .then(() => window.location.reload())
+        }
+      })
+    }
     return () => listener.subscription.unsubscribe()
   }, [])
 
