@@ -214,7 +214,21 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals })
         <button onClick={() => { localStorage.removeItem('skip_auth'); location.reload() }} style={{ width: '100%', padding: '14px', background: 'var(--bg-card)', borderRadius: 'var(--radius)', color: 'var(--text-muted)', fontSize: 15, fontWeight: 600, border: '1px solid var(--border)' }}>Switch to account</button>
       )}
 
-      <p style={{ marginTop: 32, textAlign: 'center', fontSize: 12, color: 'var(--text-hint)' }}>Mizan · Patent pending · DTH Technology</p>
+      {/* About AI */}
+      <div style={{ marginTop: 24, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '16px' }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'var(--font-display)', marginBottom: 10 }}>About AI features</div>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 8 }}>
+          Mizan's AI food scan is powered by <span style={{ color: 'var(--accent)', fontWeight: 600 }}>Claude (Anthropic)</span>, one of the most advanced AI models available. It analyzes photos of your meals and estimates calories and macronutrients.
+        </p>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 8 }}>
+          AI estimates are approximations — portion sizes and cooking methods affect accuracy. Always verify with a nutritionist for medical decisions.
+        </p>
+        <p style={{ fontSize: 12, color: 'var(--text-hint)', lineHeight: 1.5 }}>
+          Food search data from USDA FoodData Central & Open Food Facts. Arabic food database curated by the Mizan team.
+        </p>
+      </div>
+
+      <p style={{ marginTop: 24, textAlign: 'center', fontSize: 12, color: 'var(--text-hint)' }}>Mizan · Patent pending · DTH Technology</p>
       <div style={{ marginTop: 10, display: 'flex', justifyContent: 'center', gap: 20 }}>
         {[['Privacy Policy', '/privacy.html'], ['Terms', '/terms.html'], ['About', '/about.html']].map(([label, href]) => (
           <a key={label} href={href} style={{ fontSize: 12, color: 'var(--text-hint)', textDecoration: 'none' }}>{label}</a>

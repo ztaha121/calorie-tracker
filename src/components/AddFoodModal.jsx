@@ -293,7 +293,13 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {results.map((item, i) => <FoodRow key={i} item={item} onSelect={selectFood} />)}
               {results.length === 0 && query && !loading && (
-                <p style={{ color: 'var(--text-hint)', fontSize: 14, textAlign: 'center', padding: '24px 0' }}>No results. Try the custom tab.</p>
+                <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                  <p style={{ color: 'var(--text-hint)', fontSize: 14, marginBottom: 14 }}>No results found for "{query}".</p>
+                  <a href={`mailto:zay.taha@gmail.com?subject=Food request: ${query}&body=Hi, I couldn't find "${query}" in Mizan. Please add it!`}
+                    style={{ display: 'inline-block', padding: '10px 20px', background: 'var(--accent-dim)', borderRadius: 99, color: 'var(--accent)', fontSize: 13, fontWeight: 600, border: '1px solid var(--accent-glow)', textDecoration: 'none', fontFamily: 'var(--font-display)' }}>
+                    + Request this food
+                  </a>
+                </div>
               )}
             </div>
           </>

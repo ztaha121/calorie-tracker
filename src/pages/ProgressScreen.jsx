@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+
 export default function ProgressScreen({ allEntries, goal }) {
   const days = []
   for (let i = 6; i >= 0; i--) {
@@ -25,6 +27,14 @@ export default function ProgressScreen({ allEntries, goal }) {
 
   const daysUnderGoal = days.filter(d => d.calories > 0 && d.calories <= goal).length
   const daysLogged = days.filter(d => d.calories > 0).length
+
+  useEffect(() => {
+    if (streak > 0 && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg => {
+        reg.active?.postMessage({ type: 'CHECK_STREAK', streak })
+      })
+    }
+  }, [streak])
 
   const weeklyMessage = (() => {
     if (daysLogged === 0) return { text: "Start logging today — every meal counts.", emoji: '🌱', accent: false }
