@@ -1,12 +1,65 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import CalorieRing from '../components/CalorieRing.jsx'
 import MacroBar from '../components/MacroBar.jsx'
 import AddFoodModal from '../components/AddFoodModal.jsx'
 
 const MEAL_ORDER = ['Breakfast', 'Lunch', 'Dinner', 'Snack']
 const WATER_GOAL = 8
-
 const MEAL_ICONS = { Breakfast: '☀️', Lunch: '🌤️', Dinner: '🌙', Snack: '⚡' }
+
+const WATER_MESSAGES = [
+  "You're glowing 💧",
+  "Hydration queen! ✦",
+  "8/8 — body is thriving 🌊",
+  "Skin is eating today 💦",
+  "Your body says thank you 🫧",
+]
+
+function Confetti({ active, onDone }) {
+  const canvasRef = useRef()
+  useEffect(() => {
+    if (!active) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    canvas.width = canvas.offsetWidth
+    canvas.height = canvas.offsetHeight
+    const pieces = Array.from({ length: 80 }, () => ({
+      x: Math.random() * canvas.width,
+      y: -10 - Math.random() * 100,
+      r: 4 + Math.random() * 5,
+      d: 2 + Math.random() * 3,
+      color: ['#b8f0a0', '#5bb8f5', '#ffd580', '#ff9eb5', '#fff'][Math.floor(Math.random() * 5)],
+      tilt: Math.random() * 10 - 5,
+      tiltAngle: 0,
+      tiltSpeed: 0.05 + Math.random() * 0.1,
+    }))
+    let frame
+    let done = false
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      pieces.forEach(p => {
+        p.tiltAngle += p.tiltSpeed
+        p.y += p.d
+        p.x += Math.sin(p.tiltAngle) * 1.5
+        p.tilt = Math.sin(p.tiltAngle) * 12
+        ctx.beginPath()
+        ctx.lineWidth = p.r
+        ctx.strokeStyle = p.color
+        ctx.moveTo(p.x + p.tilt + p.r / 2, p.y)
+        ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2)
+        ctx.stroke()
+      })
+      if (!done) frame = requestAnimationFrame(draw)
+    }
+    draw()
+    const timer = setTimeout(() => { done = true; cancelAnimationFrame(frame); onDone() }, 2200)
+    return () => { done = true; cancelAnimationFrame(frame); clearTimeout(timer) }
+  }, [active])
+
+  if (!active) return null
+  return <canvas ref={canvasRef} style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 999 }} />
+}
 
 export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, macroGoals, user }) {
   const [showModal, setShowModal] = useState(false)
@@ -15,6 +68,8 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
     const today = new Date().toISOString().split('T')[0]
     return Number(localStorage.getItem('water_' + today) || 0)
   })
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [waterMessage, setWaterMessage] = useState('')
 
   const totals = entries.reduce((acc, e) => ({
     calories: acc.calories + (e.calories || 0),
@@ -28,6 +83,10 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
     const next = Math.max(0, Math.min(water + n, WATER_GOAL))
     setWater(next)
     localStorage.setItem('water_' + today, next)
+    if (next === WATER_GOAL && n > 0) {
+      setWaterMessage(WATER_MESSAGES[Math.floor(Math.random() * WATER_MESSAGES.length)])
+      setShowConfetti(true)
+    }
   }
 
   function handleAdd(food) {
@@ -51,7 +110,25 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
   const overGoal = totals.calories > goal
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 100 }}>
+    <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 100, position: 'relative' }}>
+      <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
+
+      {/* Water celebration toast */}
+      {waterMessage && showConfetti && (
+        <div style={{
+          position: 'fixed', top: 60, left: '50%', transform: 'translateX(-50%)',
+          background: 'var(--bg-card)', border: '1px solid var(--accent)',
+          borderRadius: 99, padding: '12px 24px', zIndex: 1000,
+          fontSize: 15, fontWeight: 700, color: 'var(--accent)',
+          fontFamily: 'var(--font-display)', letterSpacing: '-0.01em',
+          boxShadow: '0 8px 32px var(--accent-glow)',
+          whiteSpace: 'nowrap',
+          animation: 'fadeInDown 0.3s ease'
+        }}>
+          {waterMessage}
+        </div>
+      )}
+      <style>{`@keyframes fadeInDown { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }`}</style>
 
       {/* Header */}
       <div style={{ padding: '24px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -88,78 +165,45 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
       </div>
 
       {/* Water tracker */}
-      <div style={{
-        margin: '0 20px 20px',
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius)',
-        padding: '16px'
-      }}>
+      <div style={{ margin: '0 20px 20px', background: water === WATER_GOAL ? 'rgba(91,184,245,0.08)' : 'var(--bg-card)', border: `1px solid ${water === WATER_GOAL ? 'rgba(91,184,245,0.3)' : 'var(--border)'}`, borderRadius: 'var(--radius)', padding: '16px', transition: 'all 0.3s ease' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 18 }}>💧</span>
-            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-display)' }}>Hydration</span>
+            <span style={{ fontSize: 18 }}>{water === WATER_GOAL ? '🌊' : '💧'}</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-display)' }}>
+              {water === WATER_GOAL ? 'Fully hydrated!' : 'Hydration'}
+            </span>
           </div>
-          <span style={{
-            fontSize: 13, fontWeight: 600,
-            color: water >= WATER_GOAL ? 'var(--accent)' : 'var(--text-muted)',
-          }}>{water} / {WATER_GOAL}</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: water === WATER_GOAL ? '#5bb8f5' : 'var(--text-muted)' }}>{water} / {WATER_GOAL}</span>
         </div>
         <div style={{ display: 'flex', gap: 5, marginBottom: 12 }}>
           {Array.from({ length: WATER_GOAL }).map((_, i) => (
-            <div key={i} onClick={() => { if (i < water) addWater(i + 1 - water); else addWater(i + 1 - water) }} style={{
+            <div key={i} onClick={() => { if (i >= water) addWater(i + 1 - water) }} style={{
               flex: 1, height: 6, borderRadius: 99,
               background: i < water ? '#5bb8f5' : 'var(--border)',
-              transition: 'background 0.2s', cursor: 'pointer'
+              transition: 'background 0.2s', cursor: i >= water ? 'pointer' : 'default',
+              transform: i < water ? 'scaleY(1.2)' : 'scaleY(1)',
             }} />
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => addWater(-1)} style={{
-            flex: 1, padding: '9px', background: 'var(--bg-input)',
-            borderRadius: 'var(--radius-xs)', color: 'var(--text-muted)', fontSize: 18
-          }}>−</button>
-          <button onClick={() => addWater(1)} style={{
-            flex: 2, padding: '9px', background: 'rgba(91,184,245,0.12)',
-            borderRadius: 'var(--radius-xs)', color: '#5bb8f5', fontSize: 13, fontWeight: 600,
-            border: '1px solid rgba(91,184,245,0.2)'
-          }}>+ Add glass</button>
+          <button onClick={() => addWater(-1)} style={{ flex: 1, padding: '9px', background: 'var(--bg-input)', borderRadius: 'var(--radius-xs)', color: 'var(--text-muted)', fontSize: 18, border: '1px solid var(--border)' }}>−</button>
+          <button onClick={() => addWater(1)} disabled={water >= WATER_GOAL} style={{ flex: 2, padding: '9px', background: water >= WATER_GOAL ? 'rgba(91,184,245,0.05)' : 'rgba(91,184,245,0.12)', borderRadius: 'var(--radius-xs)', color: water >= WATER_GOAL ? 'rgba(91,184,245,0.4)' : '#5bb8f5', fontSize: 13, fontWeight: 600, border: '1px solid rgba(91,184,245,0.2)' }}>
+            {water >= WATER_GOAL ? '✓ Goal reached' : '+ Add glass'}
+          </button>
         </div>
       </div>
 
       {/* Action buttons */}
       <div style={{ padding: '0 20px 20px', display: 'flex', gap: 10 }}>
-        <button onClick={() => { setEditEntry(null); setShowModal(true) }} style={{
-          flex: 1, padding: '15px',
-          background: 'var(--accent)',
-          borderRadius: 'var(--radius)',
-          color: '#0e0e0f', fontSize: 15, fontWeight: 700,
-          fontFamily: 'var(--font-display)',
-          letterSpacing: '-0.01em',
-          boxShadow: '0 4px 20px var(--accent-glow)'
-        }}>+ Log food</button>
-        <button onClick={() => { setEditEntry(null); setShowModal(true); setTimeout(() => window._mizanSetTab?.('scan'), 100) }} style={{
-          width: 52, height: 52, background: 'var(--accent-dim)',
-          borderRadius: 'var(--radius-sm)', color: 'var(--accent)', fontSize: 20,
-          border: '1px solid var(--accent-glow)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-        }}>📸</button>
-        <button onClick={() => { setEditEntry(null); setShowModal(true); setTimeout(() => window._mizanSetTab?.('barcode'), 100) }} style={{
-          width: 52, height: 52, background: 'var(--bg-card)',
-          borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)', fontSize: 20,
-          border: '1px solid var(--border)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-        }}>📦</button>
+        <button onClick={() => { setEditEntry(null); setShowModal(true) }} style={{ flex: 1, padding: '15px', background: 'var(--accent)', borderRadius: 'var(--radius)', color: '#0e0e0f', fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-display)', letterSpacing: '-0.01em', boxShadow: '0 4px 20px var(--accent-glow)' }}>+ Log food</button>
+        <button onClick={() => { setEditEntry(null); setShowModal(true); setTimeout(() => window._mizanSetTab?.('scan'), 100) }} style={{ width: 52, height: 52, background: 'var(--accent-dim)', borderRadius: 'var(--radius-sm)', color: 'var(--accent)', fontSize: 20, border: '1px solid var(--accent-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>📸</button>
+        <button onClick={() => { setEditEntry(null); setShowModal(true); setTimeout(() => window._mizanSetTab?.('barcode'), 100) }} style={{ width: 52, height: 52, background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)', fontSize: 20, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>📦</button>
       </div>
 
       {/* Meal groups */}
       <div style={{ padding: '0 20px' }}>
         {entries.length === 0 ? (
-          <div style={{
-            textAlign: 'center', padding: '48px 20px',
-            background: 'var(--bg-card)', borderRadius: 'var(--radius)',
-            border: '1px dashed var(--border)'
-          }}>
+          <div style={{ textAlign: 'center', padding: '48px 20px', background: 'var(--bg-card)', borderRadius: 'var(--radius)', border: '1px dashed var(--border)' }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>🍽️</div>
             <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--text)', marginBottom: 6 }}>Nothing logged yet</div>
             <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>Tap + Log food to get started.</div>
@@ -180,9 +224,7 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
                     <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>{mealCals} kcal</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {mealEntries.map(entry => (
-                      <EntryRow key={entry.id} entry={entry} onRemove={onRemove} onEdit={startEdit} />
-                    ))}
+                    {mealEntries.map(entry => <EntryRow key={entry.id} entry={entry} onRemove={onRemove} onEdit={startEdit} />)}
                   </div>
                 </div>
               )
@@ -191,9 +233,7 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
               <div style={{ marginBottom: 20 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Other</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {ungrouped.map(entry => (
-                    <EntryRow key={entry.id} entry={entry} onRemove={onRemove} onEdit={startEdit} />
-                  ))}
+                  {ungrouped.map(entry => <EntryRow key={entry.id} entry={entry} onRemove={onRemove} onEdit={startEdit} />)}
                 </div>
               </div>
             )}
@@ -201,36 +241,22 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
         )}
       </div>
 
-      {showModal && (
-        <AddFoodModal onAdd={handleAdd} onClose={() => { setShowModal(false); setEditEntry(null) }} editEntry={editEntry} user={user} />
-      )}
+      {showModal && <AddFoodModal onAdd={handleAdd} onClose={() => { setShowModal(false); setEditEntry(null) }} editEntry={editEntry} user={user} />}
     </div>
   )
 }
 
 function EntryRow({ entry, onRemove, onEdit }) {
   return (
-    <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      background: 'var(--bg-card)', border: '1px solid var(--border)',
-      borderRadius: 'var(--radius-sm)', padding: '11px 14px'
-    }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '11px 14px' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.name}</div>
-        <div style={{ fontSize: 12, color: 'var(--text-hint)' }}>
-          {entry.time}{entry.per ? ` · ${entry.per}` : ''} · P {Math.round(entry.protein || 0)}g · C {Math.round(entry.carbs || 0)}g
-        </div>
+        <div style={{ fontSize: 12, color: 'var(--text-hint)' }}>{entry.time}{entry.per ? ` · ${entry.per}` : ''} · P {Math.round(entry.protein || 0)}g · C {Math.round(entry.carbs || 0)}g</div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 10 }}>
         <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font-display)' }}>{Math.round(entry.calories || 0)}</span>
-        <button onClick={() => onEdit(entry)} style={{
-          background: 'var(--bg-input)', borderRadius: 8, width: 30, height: 30,
-          color: 'var(--text-muted)', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>✏️</button>
-        <button onClick={() => { if (window.confirm('Delete this entry?')) onRemove(entry.id) }} style={{
-          background: 'var(--danger-dim)', borderRadius: 8, width: 30, height: 30,
-          color: 'var(--danger)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>×</button>
+        <button onClick={() => onEdit(entry)} style={{ background: 'var(--bg-input)', borderRadius: 8, width: 30, height: 30, color: 'var(--text-muted)', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✏️</button>
+        <button onClick={() => { if (window.confirm('Delete this entry?')) onRemove(entry.id) }} style={{ background: 'var(--danger-dim)', borderRadius: 8, width: 30, height: 30, color: 'var(--danger)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
       </div>
     </div>
   )
