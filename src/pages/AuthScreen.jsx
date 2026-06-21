@@ -2,52 +2,22 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase.js'
 
 async function isBiometricAvailable() {
-  try {
-    return window.PublicKeyCredential &&
-      await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
-  } catch { return false }
+  try { return window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable() }
+  catch { return false }
 }
-
-function b64url(buffer) {
-  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
-}
-
-function fromB64url(str) {
-  str = str.replace(/-/g, '+').replace(/_/g, '/')
-  while (str.length % 4) str += '='
-  return Uint8Array.from(atob(str), c => c.charCodeAt(0))
-}
+function b64url(buffer) { return btoa(String.fromCharCode(...new Uint8Array(buffer))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'') }
+function fromB64url(str) { str=str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4)str+='='; return Uint8Array.from(atob(str),c=>c.charCodeAt(0)) }
 
 async function registerBiometric(userId, email) {
   const challenge = crypto.getRandomValues(new Uint8Array(32))
-  const cred = await navigator.credentials.create({
-    publicKey: {
-      challenge,
-      rp: { name: 'Mizan', id: window.location.hostname },
-      user: { id: new TextEncoder().encode(userId), name: email, displayName: email },
-      pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
-      authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
-      timeout: 60000,
-    }
-  })
-  localStorage.setItem('biometric_id', b64url(cred.rawId))
-  localStorage.setItem('biometric_user', JSON.stringify({ userId, email }))
-  return true
+  const cred = await navigator.credentials.create({ publicKey: { challenge, rp: { name: 'Mizan', id: window.location.hostname }, user: { id: new TextEncoder().encode(userId), name: email, displayName: email }, pubKeyCredParams: [{ alg: -7, type: 'public-key' }], authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' }, timeout: 60000 } })
+  localStorage.setItem('biometric_id', b64url(cred.rawId)); localStorage.setItem('biometric_user', JSON.stringify({ userId, email })); return true
 }
 
 async function authenticateBiometric() {
-  const credId = localStorage.getItem('biometric_id')
-  if (!credId) return null
+  const credId = localStorage.getItem('biometric_id'); if (!credId) return null
   const challenge = crypto.getRandomValues(new Uint8Array(32))
-  await navigator.credentials.get({
-    publicKey: {
-      challenge,
-      allowCredentials: [{ id: fromB64url(credId), type: 'public-key' }],
-      userVerification: 'required',
-      timeout: 60000,
-    }
-  })
+  await navigator.credentials.get({ publicKey: { challenge, allowCredentials: [{ id: fromB64url(credId), type: 'public-key' }], userVerification: 'required', timeout: 60000 } })
   return JSON.parse(localStorage.getItem('biometric_user') || 'null')
 }
 
@@ -88,11 +58,11 @@ export default function AuthScreen() {
   }
 
   async function handleForgotPassword() {
-    if (!email) { setError('Enter your email first, then tap Forgot password.'); return }
+    if (!email) { setError('Enter your email first.'); return }
     setLoading(true); setError('')
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin })
     if (error) setError(error.message)
-    else setMessage('Password reset email sent! Check your inbox.')
+    else setMessage('Password reset email sent!')
     setLoading(false)
   }
 
@@ -100,18 +70,10 @@ export default function AuthScreen() {
     setError(''); setLoading(true)
     try {
       const stored = await authenticateBiometric()
-      if (!stored) { setError('No biometric login set up yet. Sign in with password first.'); setLoading(false); return }
-      setMessage('Biometric verified. Please also enter your password this session.')
-      setEmail(stored.email)
-    } catch (e) {
-      if (e.name === 'NotAllowedError') setError('Biometric cancelled.')
-      else setError('Biometric failed. Use password instead.')
-    }
+      if (!stored) { setError('No biometric login set up yet.'); setLoading(false); return }
+      setMessage('Biometric verified. Please also enter your password.'); setEmail(stored.email)
+    } catch (e) { setError(e.name === 'NotAllowedError' ? 'Biometric cancelled.' : 'Biometric failed.') }
     setLoading(false)
-  }
-
-  function skipAsGuest() {
-    setShowEmailCapture(true)
   }
 
   function continueAsGuest() {
@@ -122,50 +84,61 @@ export default function AuthScreen() {
 
   const inputStyle = {
     width: '100%', padding: '14px 16px',
-    background: 'rgba(255,255,255,0.06)',
-    border: '0.5px solid rgba(255,255,255,0.1)',
-    borderRadius: 12, color: '#f0f0f0', fontSize: 16
+    background: 'var(--bg-input)',
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: 16
   }
+
+  const accentBtn = (label, action, disabled) => (
+    <button onClick={action} disabled={disabled} style={{
+      marginTop: 4, padding: '15px', background: 'var(--accent)',
+      borderRadius: 'var(--radius-sm)', color: '#0e0e0f', fontSize: 16,
+      fontWeight: 700, fontFamily: 'var(--font-display)',
+      opacity: disabled ? 0.7 : 1,
+      boxShadow: disabled ? 'none' : '0 4px 20px var(--accent-glow)'
+    }}>{label}</button>
+  )
 
   if (showEmailCapture) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px 28px', maxWidth: 430, margin: '0 auto' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px 28px', maxWidth: 430, margin: '0 auto', background: 'var(--bg)' }}>
         <div style={{ marginBottom: 40 }}>
-          <div style={{ fontSize: 13, color: '#a8e063', fontWeight: 500, marginBottom: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Mizan</div>
-          <h1 style={{ fontSize: 28, fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: 8 }}>Get tips & updates</h1>
-          <p style={{ color: '#666', fontSize: 15 }}>Optional — enter your email to receive nutrition tips and app updates.</p>
+          <div style={{ fontSize: 13, color: 'var(--accent)', fontWeight: 700, marginBottom: 12, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Mizan ✦</div>
+          <h1 style={{ fontSize: 30, fontWeight: 800, fontFamily: 'var(--font-display)', letterSpacing: '-0.03em', lineHeight: 1.15, marginBottom: 8, color: 'var(--text)' }}>Get tips & updates</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>Optional — enter your email to receive nutrition tips.</p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <input style={inputStyle} placeholder="your@email.com" type="email" value={guestEmail} onChange={e => setGuestEmail(e.target.value)} />
-          <button onClick={continueAsGuest} style={{ padding: '15px', background: '#a8e063', borderRadius: 14, color: '#0e0e0f', fontSize: 16, fontWeight: 600 }}>
-            Continue to app →
-          </button>
-          <button onClick={continueAsGuest} style={{ background: 'none', color: '#555', fontSize: 13 }}>Skip</button>
+          {accentBtn('Continue to app →', continueAsGuest, false)}
+          <button onClick={continueAsGuest} style={{ background: 'none', color: 'var(--text-hint)', fontSize: 13 }}>Skip</button>
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px 28px', maxWidth: 430, margin: '0 auto' }}>
-      <div style={{ marginBottom: 40 }}>
-        <div style={{ fontSize: 13, color: '#a8e063', fontWeight: 500, marginBottom: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Mizan</div>
-        <h1 style={{ fontSize: 32, fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: 8 }}>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px 28px', maxWidth: 430, margin: '0 auto', background: 'var(--bg)' }}>
+
+      {/* Logo */}
+      <div style={{ marginBottom: 44 }}>
+        <div style={{ fontSize: 13, color: 'var(--accent)', fontWeight: 700, marginBottom: 14, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Mizan ✦</div>
+        <h1 style={{ fontSize: 34, fontWeight: 800, fontFamily: 'var(--font-display)', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 8, color: 'var(--text)' }}>
           {mode === 'forgot' ? 'Reset password' : mode === 'login' ? 'Welcome back' : 'Create account'}
         </h1>
-        <p style={{ color: '#666', fontSize: 15 }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.5 }}>
           {mode === 'forgot' ? "We'll send a reset link to your email." : mode === 'login' ? 'Sign in to see your progress.' : 'Start tracking your nutrition today.'}
         </p>
       </div>
 
       {mode === 'login' && biometricAvailable && biometricRegistered && (
         <button onClick={handleBiometric} style={{
-          width: '100%', padding: '15px', marginBottom: 16,
-          background: 'rgba(168,224,99,0.1)', border: '0.5px solid rgba(168,224,99,0.3)',
-          borderRadius: 14, color: '#a8e063', fontSize: 16, fontWeight: 500,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10
+          width: '100%', padding: '14px', marginBottom: 16,
+          background: 'var(--accent-dim)', border: '1px solid var(--accent-glow)',
+          borderRadius: 'var(--radius-sm)', color: 'var(--accent)', fontSize: 15, fontWeight: 600,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+          fontFamily: 'var(--font-display)'
         }}>
-          <span style={{ fontSize: 22 }}>🔒</span> Sign in with Face ID / Fingerprint
+          <span style={{ fontSize: 20 }}>🔒</span> Sign in with Face ID / Fingerprint
         </button>
       )}
 
@@ -178,44 +151,36 @@ export default function AuthScreen() {
           <input style={inputStyle} placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmit()} />
         )}
         {mode === 'login' && (
-          <button onClick={handleForgotPassword} style={{ background: 'none', color: '#555', fontSize: 13, textAlign: 'right', textDecoration: 'underline' }}>
+          <button onClick={handleForgotPassword} style={{ background: 'none', color: 'var(--text-hint)', fontSize: 13, textAlign: 'right', textDecoration: 'underline' }}>
             Forgot password?
           </button>
         )}
-        {error && <p style={{ color: '#ff6b6b', fontSize: 13, padding: '8px 12px', background: 'rgba(255,107,107,0.08)', borderRadius: 8 }}>{error}</p>}
-        {message && <p style={{ color: '#a8e063', fontSize: 13, padding: '8px 12px', background: 'rgba(168,224,99,0.08)', borderRadius: 8 }}>{message}</p>}
-        {mode === 'forgot' ? (
-          <button onClick={handleForgotPassword} disabled={loading} style={{ marginTop: 8, padding: '15px', background: '#a8e063', borderRadius: 14, color: '#0e0e0f', fontSize: 16, fontWeight: 600, opacity: loading ? 0.7 : 1 }}>
-            {loading ? 'Sending...' : 'Send reset email'}
-          </button>
-        ) : (
-          <button onClick={handleSubmit} disabled={loading} style={{ marginTop: 8, padding: '15px', background: '#a8e063', borderRadius: 14, color: '#0e0e0f', fontSize: 16, fontWeight: 600, opacity: loading ? 0.7 : 1 }}>
-            {loading ? 'Please wait...' : mode === 'login' ? 'Sign in' : 'Create account'}
-          </button>
-        )}
+        {error && <p style={{ color: 'var(--danger)', fontSize: 13, padding: '10px 14px', background: 'var(--danger-dim)', borderRadius: 'var(--radius-xs)', border: '1px solid var(--danger)' }}>{error}</p>}
+        {message && <p style={{ color: 'var(--accent)', fontSize: 13, padding: '10px 14px', background: 'var(--accent-dim)', borderRadius: 'var(--radius-xs)', border: '1px solid var(--accent-glow)' }}>{message}</p>}
+        {mode === 'forgot'
+          ? accentBtn(loading ? 'Sending...' : 'Send reset email', handleForgotPassword, loading)
+          : accentBtn(loading ? 'Please wait...' : mode === 'login' ? 'Sign in' : 'Create account', handleSubmit, loading)
+        }
       </div>
 
-      <div style={{ marginTop: 24, textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ marginTop: 28, textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {mode === 'login' && (
-          <>
-            <div>
-              <span style={{ color: '#555', fontSize: 14 }}>Don't have an account? </span>
-              <button onClick={() => { setMode('signup'); setError(''); setMessage('') }} style={{ background: 'none', color: '#a8e063', fontSize: 14, fontWeight: 500 }}>Sign up</button>
-            </div>
-            <button onClick={() => { setMode('forgot'); setError(''); setMessage('') }} style={{ background: 'none', color: '#555', fontSize: 13 }}>Reset my password</button>
-          </>
+          <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>
+            Don't have an account?{' '}
+            <button onClick={() => { setMode('signup'); setError(''); setMessage('') }} style={{ background: 'none', color: 'var(--accent)', fontSize: 14, fontWeight: 700 }}>Sign up</button>
+          </div>
         )}
         {mode !== 'login' && (
-          <div>
-            <span style={{ color: '#555', fontSize: 14 }}>Back to </span>
-            <button onClick={() => { setMode('login'); setError(''); setMessage('') }} style={{ background: 'none', color: '#a8e063', fontSize: 14, fontWeight: 500 }}>Sign in</button>
+          <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>
+            Back to{' '}
+            <button onClick={() => { setMode('login'); setError(''); setMessage('') }} style={{ background: 'none', color: 'var(--accent)', fontSize: 14, fontWeight: 700 }}>Sign in</button>
           </div>
         )}
       </div>
 
-      <p style={{ marginTop: 32, textAlign: 'center', color: '#333', fontSize: 12 }}>
+      <p style={{ marginTop: 36, textAlign: 'center', color: 'var(--text-hint)', fontSize: 13 }}>
         Or{' '}
-        <button onClick={skipAsGuest} style={{ background: 'none', color: '#555', fontSize: 12, textDecoration: 'underline' }}>
+        <button onClick={() => setShowEmailCapture(true)} style={{ background: 'none', color: 'var(--text-muted)', fontSize: 13, textDecoration: 'underline' }}>
           use without an account
         </button>
       </p>

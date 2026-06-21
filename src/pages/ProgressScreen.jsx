@@ -10,7 +10,6 @@ export default function ProgressScreen({ allEntries, goal }) {
   }
 
   const maxCal = Math.max(...days.map(d => d.calories), goal)
-
   const allEntryList = Object.values(allEntries).flat()
   const totalDays = Object.keys(allEntries).filter(k => (allEntries[k] || []).length > 0).length
   const avgCal = totalDays > 0 ? Math.round(allEntryList.reduce((sum, e) => sum + (e.calories || 0), 0) / totalDays) : 0
@@ -24,84 +23,104 @@ export default function ProgressScreen({ allEntries, goal }) {
     return s
   })()
 
-  // weekly summary
   const daysUnderGoal = days.filter(d => d.calories > 0 && d.calories <= goal).length
   const daysLogged = days.filter(d => d.calories > 0).length
+
   const weeklyMessage = (() => {
-    if (daysLogged === 0) return { text: "Start logging today — every meal counts.", color: '#555', emoji: '🌱' }
-    if (daysUnderGoal === 7) return { text: "Perfect week! You hit your goal every day.", color: '#a8e063', emoji: '🏆' }
-    if (daysUnderGoal >= 5) return { text: `Great week! You hit your goal ${daysUnderGoal}/7 days.`, color: '#a8e063', emoji: '🎯' }
-    if (daysUnderGoal >= 3) return { text: `Good progress — ${daysUnderGoal}/7 days under goal this week.`, color: '#ffd166', emoji: '💪' }
-    if (daysLogged >= 5) return { text: `You logged ${daysLogged}/7 days. Consistency is the goal.`, color: '#ffd166', emoji: '📈' }
-    return { text: "Every day you log is a win. Keep going.", color: '#888', emoji: '✨' }
+    if (daysLogged === 0) return { text: "Start logging today — every meal counts.", emoji: '🌱', accent: false }
+    if (daysUnderGoal === 7) return { text: "Perfect week! You hit your goal every day.", emoji: '🏆', accent: true }
+    if (daysUnderGoal >= 5) return { text: `Great week! You hit your goal ${daysUnderGoal}/7 days.`, emoji: '🎯', accent: true }
+    if (daysUnderGoal >= 3) return { text: `Good progress — ${daysUnderGoal}/7 days under goal.`, emoji: '💪', accent: false }
+    if (daysLogged >= 5) return { text: `You logged ${daysLogged}/7 days. Consistency is the goal.`, emoji: '📈', accent: false }
+    return { text: "Every day you log is a win. Keep going.", emoji: '✨', accent: false }
   })()
 
-  return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '24px 20px 90px' }}>
-      <h2 style={{ fontSize: 22, fontWeight: 500, marginBottom: 20 }}>Progress</h2>
+  const stats = [
+    { label: 'Avg calories', value: avgCal ? `${avgCal}` : '—', unit: avgCal ? 'kcal/day' : '' },
+    { label: 'Logging streak', value: streak, unit: streak === 1 ? 'day' : 'days' },
+    { label: 'Days logged', value: totalDays, unit: 'total' },
+    { label: 'Goal days', value: daysUnderGoal, unit: 'this week' },
+  ]
 
-      {/* weekly summary card */}
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', padding: '24px 20px 100px' }}>
+      <h2 style={{ fontSize: 26, fontWeight: 800, fontFamily: 'var(--font-display)', letterSpacing: '-0.03em', color: 'var(--text)', marginBottom: 20 }}>Progress ✦</h2>
+
+      {/* Weekly summary */}
       <div style={{
-        background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '16px 18px',
-        marginBottom: 24, display: 'flex', alignItems: 'center', gap: 14
+        background: weeklyMessage.accent ? 'var(--accent-dim)' : 'var(--bg-card)',
+        border: `1px solid ${weeklyMessage.accent ? 'var(--accent-glow)' : 'var(--border)'}`,
+        borderRadius: 'var(--radius)', padding: '16px 18px',
+        marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14
       }}>
-        <div style={{ fontSize: 32 }}>{weeklyMessage.emoji}</div>
+        <div style={{ fontSize: 32, flexShrink: 0 }}>{weeklyMessage.emoji}</div>
         <div>
-          <div style={{ fontSize: 11, color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>This week</div>
-          <div style={{ fontSize: 14, color: weeklyMessage.color, lineHeight: 1.5 }}>{weeklyMessage.text}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-hint)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontWeight: 700, fontFamily: 'var(--font-display)' }}>This week</div>
+          <div style={{ fontSize: 14, color: weeklyMessage.accent ? 'var(--accent)' : 'var(--text-muted)', lineHeight: 1.5, fontWeight: 500 }}>{weeklyMessage.text}</div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 28 }}>
-        {[
-          { label: 'Avg calories', value: avgCal ? `${avgCal}` : '—', unit: avgCal ? 'kcal/day' : '' },
-          { label: 'Logging streak', value: streak, unit: streak === 1 ? 'day' : 'days' },
-          { label: 'Days logged', value: totalDays, unit: 'total' },
-          { label: 'Goal days', value: daysUnderGoal, unit: 'this week' },
-        ].map(stat => (
-          <div key={stat.label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: '16px 14px' }}>
-            <div style={{ fontSize: 11, color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{stat.label}</div>
-            <div style={{ fontSize: 26, fontWeight: 300, color: '#f0f0f0', letterSpacing: '-0.02em' }}>{stat.value}</div>
-            <div style={{ fontSize: 12, color: '#666' }}>{stat.unit}</div>
+      {/* Stats grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
+        {stats.map(stat => (
+          <div key={stat.label} style={{
+            background: 'var(--bg-card)', border: '1px solid var(--border)',
+            borderRadius: 'var(--radius)', padding: '16px 14px'
+          }}>
+            <div style={{ fontSize: 11, color: 'var(--text-hint)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, fontWeight: 700, fontFamily: 'var(--font-display)' }}>{stat.label}</div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', fontFamily: 'var(--font-display)', lineHeight: 1 }}>{stat.value}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, fontWeight: 500 }}>{stat.unit}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ fontSize: 13, color: '#555', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Last 7 days</div>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 160, marginBottom: 8 }}>
-        {days.map(day => {
-          const pct = maxCal > 0 ? (day.calories / maxCal) : 0
-          const height = Math.max(pct * 130, day.calories > 0 ? 4 : 0)
-          const isToday = day.label === 'Today'
-          const overGoal = day.calories > goal
-          const barColor = day.calories === 0 ? 'rgba(255,255,255,0.06)' : overGoal ? '#ff6b6b' : '#a8e063'
-          return (
-            <div key={day.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-              {day.calories > 0 && (
-                <div style={{ fontSize: 10, color: '#888' }}>{day.calories}</div>
-              )}
-              <div style={{ width: '100%', display: 'flex', alignItems: 'flex-end', height: 130 }}>
+      {/* Bar chart */}
+      <div style={{ fontSize: 12, color: 'var(--text-hint)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, fontFamily: 'var(--font-display)' }}>Last 7 days</div>
+      <div style={{
+        background: 'var(--bg-card)', border: '1px solid var(--border)',
+        borderRadius: 'var(--radius)', padding: '16px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 140 }}>
+          {days.map(day => {
+            const pct = maxCal > 0 ? (day.calories / maxCal) : 0
+            const height = Math.max(pct * 110, day.calories > 0 ? 4 : 0)
+            const isToday = day.label === 'Today'
+            const overGoal = day.calories > goal
+            const barColor = day.calories === 0 ? 'var(--border)' : overGoal ? 'var(--danger)' : 'var(--accent)'
+            return (
+              <div key={day.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
+                {day.calories > 0 && (
+                  <div style={{ fontSize: 9, color: 'var(--text-hint)', fontWeight: 600 }}>{day.calories}</div>
+                )}
+                <div style={{ width: '100%', display: 'flex', alignItems: 'flex-end', height: 110 }}>
+                  <div style={{
+                    width: '100%', height: `${height}px`,
+                    background: barColor,
+                    borderRadius: '5px 5px 3px 3px',
+                    opacity: isToday ? 1 : 0.65,
+                    transition: 'height 0.4s ease'
+                  }} />
+                </div>
                 <div style={{
-                  width: '100%', height: `${height}px`,
-                  background: barColor, borderRadius: '6px 6px 3px 3px',
-                  opacity: isToday ? 1 : 0.6,
-                  transition: 'height 0.4s ease'
-                }} />
+                  fontSize: 11, fontWeight: isToday ? 700 : 400,
+                  color: isToday ? 'var(--accent)' : 'var(--text-muted)',
+                  fontFamily: isToday ? 'var(--font-display)' : 'var(--font-body)'
+                }}>{day.label}</div>
               </div>
-              <div style={{ fontSize: 11, color: isToday ? '#a8e063' : '#555', fontWeight: isToday ? 500 : 400 }}>{day.label}</div>
-            </div>
-          )
-        })}
-      </div>
-
-      <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 10, height: 10, borderRadius: 2, background: '#a8e063' }} />
-          <span style={{ fontSize: 12, color: '#555' }}>Under goal</span>
+            )
+          })}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 10, height: 10, borderRadius: 2, background: '#ff6b6b' }} />
-          <span style={{ fontSize: 12, color: '#555' }}>Over goal</span>
+
+        {/* Legend */}
+        <div style={{ display: 'flex', gap: 16, marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--accent)' }} />
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>Under goal</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--danger)' }} />
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>Over goal</span>
+          </div>
         </div>
       </div>
     </div>

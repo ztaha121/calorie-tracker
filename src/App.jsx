@@ -8,7 +8,6 @@ import ProgressScreen from './pages/ProgressScreen.jsx'
 import ProfileScreen from './pages/ProfileScreen.jsx'
 
 const today = () => new Date().toISOString().split('T')[0]
-
 const DEFAULTS = { goal: 2000, macroGoals: { protein: 150, carbs: 200, fat: 65 } }
 
 function loadLocalEntries() {
@@ -36,15 +35,11 @@ export default function App() {
   })
 
   useEffect(() => {
-    // apply saved theme
     const savedTheme = localStorage.getItem('theme') || 'dark'
     document.documentElement.setAttribute('data-theme', savedTheme)
 
-    // register service worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').then(reg => {
-        console.log('SW registered')
-      }).catch(() => {})
+      navigator.serviceWorker.register('/sw.js').catch(() => {})
     }
 
     supabase.auth.getSession().then(({ data }) => {
@@ -58,7 +53,6 @@ export default function App() {
       localStorage.setItem('skip_auth', 'true')
       setSkipAuth(true)
     })
-    // check if returning from Stripe payment
     if (window.location.search.includes('upgraded=true')) {
       window.history.replaceState({}, '', window.location.pathname)
       supabase.auth.getSession().then(({ data }) => {
@@ -73,32 +67,16 @@ export default function App() {
     return () => listener.subscription.unsubscribe()
   }, [])
 
-  // load from supabase when user logs in
   useEffect(() => {
     if (!user) return
     setDbLoading(true)
-    supabase
-      .from('food_logs')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: true })
+    supabase.from('food_logs').select('*').eq('user_id', user.id).order('created_at', { ascending: true })
       .then(({ data, error }) => {
         if (error) { console.error(error); setDbLoading(false); return }
         const grouped = {}
         ;(data || []).forEach(row => {
           if (!grouped[row.date]) grouped[row.date] = []
-          grouped[row.date].push({
-            id: row.id,
-            name: row.name,
-            calories: row.calories,
-            protein: row.protein,
-            carbs: row.carbs,
-            fat: row.fat,
-            meal: row.meal,
-            portion: row.portion,
-            per: row.per,
-            time: row.time,
-          })
+          grouped[row.date].push({ id: row.id, name: row.name, calories: row.calories, protein: row.protein, carbs: row.carbs, fat: row.fat, meal: row.meal, portion: row.portion, per: row.per, time: row.time })
         })
         setAllEntries(grouped)
         setDbLoading(false)
@@ -108,31 +86,17 @@ export default function App() {
   const todayEntries = allEntries[today()] || []
 
   async function addFood(food) {
-    const entry = {
-      ...food,
-      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-    }
-
+    const entry = { ...food, time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) }
     if (user) {
       const { data, error } = await supabase.from('food_logs').insert({
-        user_id: user.id,
-        date: today(),
-        name: entry.name,
-        calories: entry.calories || 0,
-        protein: entry.protein || 0,
-        carbs: entry.carbs || 0,
-        fat: entry.fat || 0,
-        meal: entry.meal,
-        portion: entry.portion || 100,
-        per: entry.per,
-        time: entry.time,
+        user_id: user.id, date: today(), name: entry.name,
+        calories: entry.calories || 0, protein: entry.protein || 0,
+        carbs: entry.carbs || 0, fat: entry.fat || 0,
+        meal: entry.meal, portion: entry.portion || 100, per: entry.per, time: entry.time,
       }).select().single()
       if (!error && data) {
         entry.id = data.id
-        setAllEntries(prev => ({
-          ...prev,
-          [today()]: [...(prev[today()] || []), entry]
-        }))
+        setAllEntries(prev => ({ ...prev, [today()]: [...(prev[today()] || []), entry] }))
       }
     } else {
       entry.id = Date.now()
@@ -147,9 +111,7 @@ export default function App() {
       await supabase.from('food_logs').delete().eq('id', id).eq('user_id', user.id)
       setAllEntries(prev => {
         const updated = { ...prev }
-        Object.keys(updated).forEach(date => {
-          updated[date] = updated[date].filter(e => e.id !== id)
-        })
+        Object.keys(updated).forEach(date => { updated[date] = updated[date].filter(e => e.id !== id) })
         return updated
       })
     } else {
@@ -162,19 +124,11 @@ export default function App() {
   async function editFood(id, updated) {
     if (user) {
       await supabase.from('food_logs').update({
-        name: updated.name,
-        calories: updated.calories || 0,
-        protein: updated.protein || 0,
-        carbs: updated.carbs || 0,
-        fat: updated.fat || 0,
-        meal: updated.meal,
-        portion: updated.portion || 100,
-        per: updated.per,
+        name: updated.name, calories: updated.calories || 0, protein: updated.protein || 0,
+        carbs: updated.carbs || 0, fat: updated.fat || 0, meal: updated.meal,
+        portion: updated.portion || 100, per: updated.per,
       }).eq('id', id).eq('user_id', user.id)
-      setAllEntries(prev => ({
-        ...prev,
-        [today()]: (prev[today()] || []).map(e => e.id === id ? { ...e, ...updated } : e)
-      }))
+      setAllEntries(prev => ({ ...prev, [today()]: (prev[today()] || []).map(e => e.id === id ? { ...e, ...updated } : e) }))
     } else {
       const newEntries = todayEntries.map(e => e.id === id ? { ...e, ...updated } : e)
       localStorage.setItem('entries_' + today(), JSON.stringify(newEntries))
@@ -189,7 +143,11 @@ export default function App() {
   }
 
   if (!authChecked) {
-    return <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#333', fontSize: 14 }}>Loading...</div>
+    return (
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', color: 'var(--text-muted)', fontSize: 14, fontFamily: 'var(--font-body)' }}>
+        Loading...
+      </div>
+    )
   }
 
   if (!user && !skipAuth) return <AuthScreen />
@@ -201,47 +159,73 @@ export default function App() {
   }} />
 
   const navItems = [
-    { tab: 'today', icon: '⬤', label: 'Home' },
-    { tab: 'log', icon: '☰', label: 'Log' },
-    { tab: 'progress', icon: '▲', label: 'Progress' },
-    { tab: 'profile', icon: '○', label: 'Profile' },
+    { tab: 'today', icon: '◎', label: 'Home' },
+    { tab: 'log', icon: '≡', label: 'Log' },
+    { tab: 'progress', icon: '╱╲', label: 'Progress' },
+    { tab: 'profile', icon: '◌', label: 'Profile' },
   ]
 
   const navStyle = (tab) => ({
-    flex: 1, padding: '10px 0', background: 'none',
-    color: activeTab === tab ? '#a8e063' : '#444',
-    fontSize: 11, fontWeight: 500,
-    borderTop: activeTab === tab ? '1.5px solid #a8e063' : '1.5px solid transparent',
-    transition: 'color 0.15s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3
+    flex: 1,
+    padding: '10px 0 14px',
+    background: 'none',
+    color: activeTab === tab ? 'var(--accent)' : 'var(--text-hint)',
+    fontSize: 11,
+    fontWeight: activeTab === tab ? 700 : 400,
+    fontFamily: 'var(--font-display)',
+    letterSpacing: '0.02em',
+    transition: 'color 0.15s',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 4,
+    position: 'relative',
   })
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', maxWidth: 430, margin: '0 auto', overflow: 'hidden' }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column',
+      height: '100dvh', width: '100%',
+      maxWidth: 430, margin: '0 auto',
+      overflow: 'hidden', background: 'var(--bg)'
+    }}>
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {dbLoading ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
             <style>{`@keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.4 } }`}</style>
             <img src="/icon-192.png" style={{ width: 64, height: 64, borderRadius: 16, animation: 'pulse 1.5s ease-in-out infinite' }} />
-            <div style={{ color: '#555', fontSize: 14 }}>Loading your data...</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading your data...</div>
           </div>
         ) : (
           <>
-            {activeTab === 'today' && (
-              <HomeScreen entries={todayEntries} onAdd={addFood} onRemove={removeFood} onEdit={editFood} goal={settings.goal} macroGoals={settings.macroGoals} user={user} />
-            )}
+            {activeTab === 'today' && <HomeScreen entries={todayEntries} onAdd={addFood} onRemove={removeFood} onEdit={editFood} goal={settings.goal} macroGoals={settings.macroGoals} user={user} />}
             {activeTab === 'log' && <LogScreen allEntries={allEntries} />}
             {activeTab === 'progress' && <ProgressScreen allEntries={allEntries} goal={settings.goal} />}
-            {activeTab === 'profile' && (
-              <ProfileScreen user={user} goal={settings.goal} macroGoals={settings.macroGoals} onUpdateGoals={updateGoals} />
-            )}
+            {activeTab === 'profile' && <ProfileScreen user={user} goal={settings.goal} macroGoals={settings.macroGoals} onUpdateGoals={updateGoals} />}
           </>
         )}
       </div>
-      <div style={{ background: 'rgba(14,14,15,0.97)', borderTop: '0.5px solid rgba(255,255,255,0.06)', display: 'flex', flexShrink: 0 }}>
+
+      {/* Nav bar */}
+      <div style={{
+        background: 'var(--bg-card)',
+        borderTop: '1px solid var(--border)',
+        display: 'flex',
+        flexShrink: 0,
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}>
         {navItems.map(({ tab, icon, label }) => (
           <button key={tab} style={navStyle(tab)} onClick={() => setActiveTab(tab)}>
-            <span style={{ fontSize: 16 }}>{icon}</span>
+            <span style={{ fontSize: 18, lineHeight: 1 }}>{icon}</span>
             <span>{label}</span>
+            {activeTab === tab && (
+              <span style={{
+                position: 'absolute', bottom: 6, left: '50%',
+                transform: 'translateX(-50%)',
+                width: 4, height: 4, borderRadius: 99,
+                background: 'var(--accent)',
+              }} />
+            )}
           </button>
         ))}
       </div>
