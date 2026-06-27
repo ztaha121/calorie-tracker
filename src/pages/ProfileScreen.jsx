@@ -26,8 +26,6 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
   const [protein, setProtein]               = useState(macroGoals.protein)
   const [carbs, setCarbs]                   = useState(macroGoals.carbs)
   const [fat, setFat]                       = useState(macroGoals.fat)
-  const [notifEnabled, setNotifEnabled]     = useState(() => localStorage.getItem('notif_enabled') === 'true')
-  const [isDark, setIsDark]                 = useState(() => localStorage.getItem('theme') === 'dark')
 
   const saved = (() => { try { return JSON.parse(localStorage.getItem('settings') || '{}') } catch { return {} } })()
   const [weight, setWeight]     = useState(saved.weight || '')
@@ -47,18 +45,6 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
   function closeManageModal() {
     setShowManageModal(false); setShowDeleteFlow(false)
     setConfirmEmail(''); setDeleteError(''); setDeleteLoading(false)
-  }
-
-  async function toggleNotifications() {
-    if (notifEnabled) { localStorage.setItem('notif_enabled', 'false'); setNotifEnabled(false); return }
-    const permission = await Notification.requestPermission()
-    if (permission === 'granted') {
-      localStorage.setItem('notif_enabled', 'true'); setNotifEnabled(true)
-      if ('serviceWorker' in navigator) {
-        const reg = await navigator.serviceWorker.ready
-        reg.active?.postMessage({ type: 'SCHEDULE_REMINDER', time: 20 })
-      }
-    } else { alert('Please enable notifications in your browser settings.') }
   }
 
   function handleCalculate() {
@@ -87,14 +73,11 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
     } catch (err) { setDeleteError(err.message || 'Something went wrong.'); setDeleteLoading(false) }
   }
 
-  // ── Style helpers ──────────────────────────────────────────────────────────
   const inp = {
     width: '100%', padding: '12px 14px',
     background: 'var(--bg-input)', border: '1.5px solid var(--border)',
-    borderRadius: 'var(--radius-xs)', color: 'var(--text)', fontSize: 15,
-    fontFamily: 'inherit',
+    borderRadius: 'var(--radius-xs)', color: 'var(--text)', fontSize: 15, fontFamily: 'inherit',
   }
-
   const chip = (active) => ({
     flex: 1, padding: '9px 6px', borderRadius: 'var(--radius-xs)',
     fontSize: 12, fontWeight: 600, cursor: 'pointer', textAlign: 'center',
@@ -103,57 +86,20 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
     color: active ? 'var(--accent)' : 'var(--text-muted)',
   })
 
-  const Toggle = ({ on, onToggle }) => (
-    <button onClick={onToggle} style={{
-      width: 48, height: 28, borderRadius: 99,
-      background: on ? 'var(--accent)' : 'var(--bg-input)',
-      border: '1.5px solid var(--border)',
-      position: 'relative', transition: 'background 0.2s', flexShrink: 0,
-    }}>
-      <div style={{
-        width: 22, height: 22, borderRadius: 99,
-        background: '#fff',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
-        position: 'absolute', top: 2,
-        left: on ? 22 : 2,
-        transition: 'left 0.2s cubic-bezier(0.34,1.56,0.64,1)',
-      }} />
-    </button>
-  )
-
-  const Card = ({ children, style }) => (
-    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: 12, boxShadow: 'var(--shadow-card)', ...style }}>{children}</div>
-  )
-
-  const Row = ({ label, sub, right, border }) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderTop: border ? '1px solid var(--border-subtle)' : 'none' }}>
-      <div>
-        <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text)' }}>{label}</div>
-        {sub && <div style={{ fontSize: 12, color: 'var(--text-hint)', marginTop: 2 }}>{sub}</div>}
-      </div>
-      <div>{right}</div>
-    </div>
-  )
-
   return (
     <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg)', paddingBottom: 24 }}>
 
       {/* Header */}
-      <div style={{ padding: '20px 20px 16px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ padding: '20px 20px 20px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
         <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 16 }}>Profile</div>
 
-        {/* Avatar row */}
+        {/* Avatar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{
-            width: 52, height: 52, borderRadius: 99,
-            background: 'var(--accent-dim)', border: '2px solid var(--accent)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 20, color: 'var(--accent)', fontWeight: 700,
-          }}>
+          <div style={{ width: 56, height: 56, borderRadius: 99, background: 'var(--accent-dim)', border: '2px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, color: 'var(--accent)', fontWeight: 700, flexShrink: 0 }}>
             {user?.email?.[0]?.toUpperCase() || '?'}
           </div>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.01em' }}>{user?.user_metadata?.full_name || 'User'}</div>
+            <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.01em' }}>{user?.user_metadata?.full_name || 'User'}</div>
             <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{user?.email || 'Local mode'}</div>
           </div>
         </div>
@@ -161,29 +107,13 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
 
       <div style={{ padding: '16px 16px 0' }}>
 
-        {/* Settings toggles */}
-        <Card>
-          <Row label="Daily reminder" sub="Reminded at 8pm if you haven't logged" right={<Toggle on={notifEnabled} onToggle={toggleNotifications} />} />
-          <Row label="Dark mode" sub={isDark ? 'Currently dark' : 'Currently light'} border right={
-            <Toggle on={isDark} onToggle={() => {
-              const next = !isDark; setIsDark(next)
-              localStorage.setItem('theme', next ? 'dark' : 'light')
-              document.documentElement.setAttribute('data-theme', next ? 'dark' : 'light')
-            }} />
-          } />
-        </Card>
-
-        {/* Daily goals */}
-        <Card>
+        {/* Daily goals card */}
+        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: 12, boxShadow: 'var(--shadow-card)' }}>
           <div style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)' }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.04em' }}>DAILY GOALS</span>
-            <button onClick={() => setEditing(!editing)} style={{
-              background: editing ? 'var(--danger-dim)' : 'var(--accent-dim)',
-              borderRadius: 8, padding: '5px 14px',
-              color: editing ? 'var(--danger)' : 'var(--accent)',
-              fontSize: 13, fontWeight: 600,
-              border: `1px solid ${editing ? 'rgba(239,68,68,0.3)' : 'var(--accent-glow)'}`,
-            }}>{editing ? 'Cancel' : 'Edit'}</button>
+            <button onClick={() => setEditing(!editing)} style={{ background: editing ? 'var(--danger-dim)' : 'var(--accent-dim)', borderRadius: 8, padding: '5px 14px', color: editing ? 'var(--danger)' : 'var(--accent)', fontSize: 13, fontWeight: 600, border: `1px solid ${editing ? 'rgba(239,68,68,0.3)' : 'var(--accent-glow)'}` }}>
+              {editing ? 'Cancel' : 'Edit'}
+            </button>
           </div>
 
           {editing ? (
@@ -192,11 +122,9 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
                 <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6 }}>Your name</div>
                 <input style={inp} placeholder="e.g. Zaynab" value={displayName} onChange={e => setDisplayName(e.target.value)} />
               </div>
-
               <button onClick={() => setShowCalculator(!showCalculator)} style={{ padding: '11px', background: 'var(--bg-card-2)', borderRadius: 'var(--radius-xs)', color: 'var(--accent)', fontSize: 13, fontWeight: 700, border: '1.5px solid var(--accent)' }}>
                 ✦ {showCalculator ? 'Hide calculator' : 'Calculate from my stats'}
               </button>
-
               {showCalculator && (
                 <div style={{ background: 'var(--bg-card-2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <div style={{ display: 'flex', gap: 8 }}>
@@ -231,12 +159,10 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
                   {calcResult && (
                     <div style={{ background: 'var(--accent-dim)', borderRadius: 'var(--radius-xs)', padding: '10px 12px', fontSize: 13, color: 'var(--accent)', fontWeight: 600 }}>
                       ✦ {calcResult.goal} kcal · P {calcResult.macroGoals.protein}g · C {calcResult.macroGoals.carbs}g · F {calcResult.macroGoals.fat}g
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, fontWeight: 400 }}>Applied below — adjust if needed</div>
                     </div>
                   )}
                 </div>
               )}
-
               <div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6 }}>Calories (kcal)</div>
                 <input style={inp} type="number" value={calGoal} onChange={e => setCalGoal(e.target.value)} />
@@ -254,62 +180,35 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
           ) : (
             <>
               {[['Calories', `${goal} kcal`], ['Protein', `${macroGoals.protein}g`], ['Carbs', `${macroGoals.carbs}g`], ['Fat', `${macroGoals.fat}g`]].map(([label, val], i) => (
-                <Row key={label} label={label} border={i > 0} right={<span style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}>{val}</span>} />
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 16px', borderTop: i > 0 ? '1px solid var(--border-subtle)' : 'none' }}>
+                  <span style={{ fontSize: 15, fontWeight: 500 }}>{label}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}>{val}</span>
+                </div>
               ))}
             </>
           )}
-        </Card>
-
-        {/* Feature shortcuts */}
-        <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-hint)', letterSpacing: '0.08em', marginBottom: 10 }}>FEATURES</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            {[
-              { icon: '🌙', label: 'Ramadan', tab: 'ramadan', color: '#6366f1' },
-              { icon: '⚖️', label: 'Weight', tab: 'weight', color: 'var(--accent)' },
-              { icon: '🫕', label: 'Arabic AI', tab: 'arabic', color: 'var(--orange)' },
-            ].map(({ icon, label, tab, color }) => (
-              <button key={tab} onClick={() => onNavigate?.(tab)} style={{
-                padding: '14px 8px', background: 'var(--bg-card)',
-                borderRadius: 'var(--radius)', border: '1px solid var(--border)',
-                boxShadow: 'var(--shadow-card)', textAlign: 'center',
-              }}>
-                <div style={{ fontSize: 24, marginBottom: 6 }}>{icon}</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)' }}>{label}</div>
-              </button>
-            ))}
-          </div>
         </div>
 
-        {/* Action buttons */}
+        {/* Account actions */}
         {user ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: 12, boxShadow: 'var(--shadow-card)' }}>
             {[
-              { label: '✨ Restore purchase', bg: 'var(--accent-dim)', color: 'var(--accent)', border: 'var(--accent-glow)', action: async () => { const { data } = await supabase.from('profiles').select('is_premium').eq('id', user.id).single(); if (data?.is_premium) alert('✨ Pro access confirmed!'); else window.location.href = 'https://calorie-tracker.lemonsqueezy.com/checkout/buy/dcfeff6d-dfd3-4617-b1c2-bfe200389807?redirect_url=https://calorie-tracker-fawn-sigma.vercel.app?upgraded=true' } },
-              { label: '📤 Share Mizan', bg: 'var(--bg-card)', color: 'var(--text-secondary)', border: 'var(--border)', action: () => { if (navigator.share) navigator.share({ title: 'Mizan', text: 'Track nutrition with AI!', url: 'https://calorie-tracker-fawn-sigma.vercel.app' }); else { navigator.clipboard.writeText('https://calorie-tracker-fawn-sigma.vercel.app'); alert('Link copied!') } } },
-              { label: 'Manage subscription', bg: 'var(--bg-card)', color: 'var(--text-muted)', border: 'var(--border)', action: () => { const e = user?.email || ''; window.open(e ? `https://app.lemonsqueezy.com/my-orders?email=${encodeURIComponent(e)}` : 'https://app.lemonsqueezy.com/my-orders', '_blank') } },
-              { label: '⚙️ Manage account', bg: 'var(--bg-card)', color: 'var(--text-muted)', border: 'var(--border)', action: () => setShowManageModal(true) },
-              { label: 'Sign out', bg: 'var(--danger-dim)', color: 'var(--danger)', border: 'rgba(239,68,68,0.3)', action: () => supabase.auth.signOut() },
-            ].map(({ label, bg, color, border, action }) => (
-              <button key={label} onClick={action} style={{ width: '100%', padding: '14px', background: bg, borderRadius: 'var(--radius)', color, fontSize: 15, fontWeight: 600, border: `1px solid ${border}`, boxShadow: 'var(--shadow-card)' }}>{label}</button>
+              { label: '✨ Restore purchase', color: 'var(--accent)', action: async () => { const { data } = await supabase.from('profiles').select('is_premium').eq('id', user.id).single(); if (data?.is_premium) alert('✨ Pro access confirmed!'); else window.location.href = 'https://calorie-tracker.lemonsqueezy.com/checkout/buy/dcfeff6d-dfd3-4617-b1c2-bfe200389807?redirect_url=https://calorie-tracker-fawn-sigma.vercel.app?upgraded=true' } },
+              { label: '📤 Share Mizan', color: 'var(--text)', action: () => { if (navigator.share) navigator.share({ title: 'Mizan', text: 'Track nutrition with AI!', url: 'https://calorie-tracker-fawn-sigma.vercel.app' }); else { navigator.clipboard.writeText('https://calorie-tracker-fawn-sigma.vercel.app'); alert('Link copied!') } } },
+              { label: '⚙️ Manage account', color: 'var(--text-muted)', action: () => setShowManageModal(true) },
+              { label: 'Sign out', color: 'var(--danger)', action: () => supabase.auth.signOut() },
+            ].map(({ label, color, action }, i) => (
+              <button key={label} onClick={action} style={{ width: '100%', padding: '15px 16px', background: 'transparent', textAlign: 'left', fontSize: 15, fontWeight: 500, color, borderTop: i > 0 ? '1px solid var(--border-subtle)' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                {label}
+                <span style={{ color: 'var(--text-hint)', fontSize: 18 }}>›</span>
+              </button>
             ))}
           </div>
         ) : (
           <button onClick={() => { localStorage.removeItem('skip_auth'); location.reload() }} style={{ width: '100%', padding: '14px', background: 'var(--bg-card)', borderRadius: 'var(--radius)', color: 'var(--text-muted)', fontSize: 15, fontWeight: 600, border: '1px solid var(--border)' }}>Switch to account</button>
         )}
 
-        {/* About AI */}
-        <div style={{ marginTop: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '16px', boxShadow: 'var(--shadow-card)' }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>About AI features</div>
-          <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 8 }}>
-            Mizan's AI food scan is powered by <span style={{ color: 'var(--accent)', fontWeight: 600 }}>Claude (Anthropic)</span>. It analyzes photos of your meals and estimates calories and macronutrients.
-          </p>
-          <p style={{ fontSize: 12, color: 'var(--text-hint)', lineHeight: 1.5 }}>
-            Food data from USDA FoodData Central & Open Food Facts. Arabic food database curated by the Mizan team.
-          </p>
-        </div>
-
-        <p style={{ marginTop: 20, textAlign: 'center', fontSize: 12, color: 'var(--text-hint)' }}>Mizan · Patent pending · DTH Technology</p>
+        <p style={{ marginTop: 12, textAlign: 'center', fontSize: 12, color: 'var(--text-hint)' }}>Mizan · Patent pending · DTH Technology</p>
         <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center', gap: 20, paddingBottom: 8 }}>
           {[['Privacy', '/privacy.html'], ['Terms', '/terms.html'], ['About', '/about.html']].map(([label, href]) => (
             <a key={label} href={href} style={{ fontSize: 12, color: 'var(--text-hint)', textDecoration: 'none' }}>{label}</a>
@@ -321,12 +220,10 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
       {showManageModal && (
         <div onClick={closeManageModal} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000 }}>
           <div onClick={e => e.stopPropagation()} className="sheet" style={{ background: 'var(--bg-card)', borderRadius: '20px 20px 0 0', padding: '24px 20px 40px', width: '100%', maxWidth: 430, display: 'flex', flexDirection: 'column', gap: 12, border: '1px solid var(--border)', borderBottom: 'none' }}>
-
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 17, fontWeight: 700 }}>Manage Account</span>
               <button onClick={closeManageModal} style={{ background: 'var(--bg-card-2)', borderRadius: 99, width: 30, height: 30, color: 'var(--text-muted)', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
             </div>
-
             {!showDeleteFlow ? (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 12, borderBottom: '1px solid var(--border-subtle)' }}>
@@ -340,9 +237,7 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
               <>
                 <div style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: 10, padding: '14px', display: 'flex', gap: 10 }}>
                   <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
-                  <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
-                    This will permanently delete your account and <strong>all your food logs</strong>. This cannot be undone.
-                  </p>
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>This will permanently delete your account and <strong>all your food logs</strong>. This cannot be undone.</p>
                 </div>
                 <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>Type your email to confirm:</p>
                 <input style={{ width: '100%', padding: '12px 14px', background: 'var(--bg-input)', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-xs)', color: 'var(--text)', fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' }} type="email" placeholder={user?.email} value={confirmEmail} onChange={e => { setConfirmEmail(e.target.value); setDeleteError('') }} autoCapitalize="none" />

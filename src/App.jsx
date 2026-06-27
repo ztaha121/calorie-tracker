@@ -10,6 +10,7 @@ import RamadanScreen from './pages/RamadanScreen.jsx'
 import WeightTracker from './pages/WeightTracker.jsx'
 import FriendsScreen from './pages/FriendsScreen.jsx'
 import ArabicRecipeScreen from './pages/ArabicRecipeScreen.jsx'
+import MoreScreen from './pages/MoreScreen.jsx'
 
 const today = () => new Date().toISOString().split('T')[0]
 const DEFAULTS = { goal: 2000, macroGoals: { protein: 150, carbs: 200, fat: 65 } }
@@ -89,6 +90,13 @@ function TabIcon({ tab, active }) {
         {active
           ? <path d="M12 3a9 9 0 1 0 9 9c0-.5-.5-1-1-1a7 7 0 1 1-8-8c-.5 0-1-.5-1-1s.5-1 1-1z" fill={color}/>
           : <path d="M12 3a9 9 0 1 0 9 9c0-.5-.5-1-1-1a7 7 0 1 1-8-8c-.5 0-1-.5-1-1s.5-1 1-1z" stroke={color} strokeWidth="1.8" fill="none"/>}
+      </svg>
+    ),
+    more: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        {active
+          ? <><circle cx="5" cy="12" r="2" fill={color}/><circle cx="12" cy="12" r="2" fill={color}/><circle cx="19" cy="12" r="2" fill={color}/></>
+          : <><circle cx="5" cy="12" r="2" stroke={color} strokeWidth="1.8"/><circle cx="12" cy="12" r="2" stroke={color} strokeWidth="1.8"/><circle cx="19" cy="12" r="2" stroke={color} strokeWidth="1.8"/></>}
       </svg>
     ),
     profile: (
@@ -224,7 +232,7 @@ export default function App() {
     { tab: 'log',     label: 'Log' },
     { tab: 'progress',label: 'Progress' },
     { tab: 'friends', label: 'Friends' },
-    { tab: 'profile', label: 'Profile' },
+    { tab: 'more', label: 'More' },
   ]
 
   return (
@@ -242,6 +250,7 @@ export default function App() {
             {activeTab === 'log'      && <LogScreen     allEntries={allEntries} />}
             {activeTab === 'progress' && <ProgressScreen allEntries={allEntries} goal={settings.goal} />}
             {activeTab === 'profile'  && <ProfileScreen  user={user} goal={settings.goal} macroGoals={settings.macroGoals} onUpdateGoals={updateGoals} onNavigate={setActiveTab} />}
+            {activeTab === 'more'     && <MoreScreen onNavigate={setActiveTab} user={user} />}
             {activeTab === 'ramadan'  && <RamadanScreen entries={todayEntries} goal={settings.goal} macroGoals={settings.macroGoals} onAdd={addFood} user={user} />}
             {activeTab === 'friends'  && <FriendsScreen user={user} allEntries={allEntries} goal={settings.goal} />}
             {activeTab === 'weight'   && <WeightTracker user={user} />}
