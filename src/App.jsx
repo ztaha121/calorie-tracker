@@ -11,6 +11,8 @@ import WeightTracker from './pages/WeightTracker.jsx'
 import FriendsScreen from './pages/FriendsScreen.jsx'
 import ArabicRecipeScreen from './pages/ArabicRecipeScreen.jsx'
 import MoreScreen from './pages/MoreScreen.jsx'
+import NutritionCoach from './pages/NutritionCoach.jsx'
+import StreakProtection from './components/StreakProtection.jsx'
 
 const today = () => new Date().toISOString().split('T')[0]
 const DEFAULTS = { goal: 2000, macroGoals: { protein: 150, carbs: 200, fat: 65 } }
@@ -251,6 +253,7 @@ export default function App() {
             {activeTab === 'progress' && <ProgressScreen allEntries={allEntries} goal={settings.goal} />}
             {activeTab === 'profile'  && <ProfileScreen  user={user} goal={settings.goal} macroGoals={settings.macroGoals} onUpdateGoals={updateGoals} onNavigate={setActiveTab} />}
             {activeTab === 'more'     && <MoreScreen onNavigate={setActiveTab} user={user} />}
+            {activeTab === 'coach'    && <NutritionCoach user={user} allEntries={allEntries} goal={settings.goal} macroGoals={settings.macroGoals} />}
             {activeTab === 'ramadan'  && <RamadanScreen entries={todayEntries} goal={settings.goal} macroGoals={settings.macroGoals} onAdd={addFood} user={user} />}
             {activeTab === 'friends'  && <FriendsScreen user={user} allEntries={allEntries} goal={settings.goal} />}
             {activeTab === 'weight'   && <WeightTracker user={user} />}

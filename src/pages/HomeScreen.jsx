@@ -3,6 +3,7 @@ import CalorieRing from '../components/CalorieRing.jsx'
 import MacroBar from '../components/MacroBar.jsx'
 import AddFoodModal from '../components/AddFoodModal.jsx'
 import FoodImage from '../components/FoodImage.jsx'
+import StreakProtection from '../components/StreakProtection.jsx'
 
 const MEAL_ORDER = ['Breakfast', 'Lunch', 'Dinner', 'Snack']
 const WATER_GOAL = 8
@@ -105,6 +106,13 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
   const [showSuggestion, setShowSuggestion] = useState(false)
   const [showShareSheet, setShowShareSheet] = useState(false)
   const [goalCelebrated, setGoalCelebrated] = useState(() => localStorage.getItem('goal_celebrated_' + new Date().toISOString().split('T')[0]) === 'true')
+  const [isPro] = useState(() => localStorage.getItem('is_premium') === 'true')
+  const [showStreakModal, setShowStreakModal] = useState(() => {
+    const today = new Date().toISOString().split('T')[0]
+    const dismissed = localStorage.getItem('streak_dismissed_' + today) === 'true'
+    const frozen = localStorage.getItem('streak_freeze_' + today) === 'true'
+    return false // evaluated after entries load
+  })
 
   const totals = entries.reduce((acc, e) => ({
     calories: acc.calories + (e.calories || 0),
@@ -124,6 +132,17 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
 
   const grouped   = MEAL_ORDER.reduce((acc, m) => { acc[m] = entries.filter(e => e.meal === m); return acc }, {})
   const ungrouped = entries.filter(e => !e.meal || !MEAL_ORDER.includes(e.meal))
+
+  // Show streak protection if no entries today and streak >= 3
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0]
+    const dismissed = localStorage.getItem('streak_dismissed_' + today) === 'true'
+    const frozen = localStorage.getItem('streak_freeze_' + today) === 'true'
+    if (streak >= 3 && entries.length === 0 && !dismissed && !frozen) {
+      const timer = setTimeout(() => setShowStreakModal(true), 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [streak, entries.length])
 
   // Goal celebration — fires once per day when goal is first hit
   useEffect(() => {
@@ -432,6 +451,23 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
             </div>
           </div>
         </div>
+      )}
+
+      {showStreakModal && (
+        <StreakProtection
+          streak={streak}
+          isPro={isPro}
+          onClose={() => {
+            const today = new Date().toISOString().split('T')[0]
+            localStorage.setItem('streak_dismissed_' + today, 'true')
+            setShowStreakModal(false)
+            setShowModal(true)
+          }}
+          onUpgrade={() => {
+            setShowStreakModal(false)
+            window.location.href = 'https://calorie-tracker.lemonsqueezy.com/checkout/buy/dcfeff6d-dfd3-4617-b1c2-bfe200389807?redirect_url=https://calorie-tracker-fawn-sigma.vercel.app?upgraded=true'
+          }}
+        />
       )}
 
       {showModal && <AddFoodModal onAdd={handleAdd} onClose={() => { setShowModal(false); setEditEntry(null) }} editEntry={editEntry} user={user} />}

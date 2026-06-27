@@ -9,6 +9,7 @@ export default function MoreScreen({ onNavigate, user }) {
         { icon: '⚖️', label: 'Weight Tracker', sub: 'Log & chart your weight', tab: 'weight' },
         { icon: '🫕', label: 'Arabic Recipe AI', sub: 'Describe a dish, get macros', tab: 'arabic' },
         { icon: '👥', label: 'Friends', sub: 'Live leaderboard', tab: 'friends' },
+        { icon: '✦', label: 'AI Coach', sub: 'Personalized nutrition advice', tab: 'coach' },
       ],
     },
     {
