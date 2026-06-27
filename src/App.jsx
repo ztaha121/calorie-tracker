@@ -7,6 +7,9 @@ import LogScreen from './pages/LogScreen.jsx'
 import ProgressScreen from './pages/ProgressScreen.jsx'
 import ProfileScreen from './pages/ProfileScreen.jsx'
 import RamadanScreen from './pages/RamadanScreen.jsx'
+import WeightTracker from './pages/WeightTracker.jsx'
+import FriendsScreen from './pages/FriendsScreen.jsx'
+import ArabicRecipeScreen from './pages/ArabicRecipeScreen.jsx'
 
 const today = () => new Date().toISOString().split('T')[0]
 const DEFAULTS = { goal: 2000, macroGoals: { protein: 150, carbs: 200, fat: 65 } }
@@ -58,6 +61,27 @@ function TabIcon({ tab, active }) {
               <rect x="10" y="7" width="4" height="14" rx="1" stroke={color} strokeWidth="1.8"/>
               <rect x="17" y="3" width="4" height="18" rx="1" stroke={color} strokeWidth="1.8"/>
             </>}
+      </svg>
+    ),
+    weight: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        {active
+          ? <><rect x="3" y="6" width="18" height="14" rx="3" fill={color}/><path d="M8 6V5a4 4 0 0 1 8 0v1" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></>
+          : <><rect x="3" y="6" width="18" height="14" rx="3" stroke={color} strokeWidth="1.8"/><path d="M8 6V5a4 4 0 0 1 8 0v1" stroke={color} strokeWidth="1.8" strokeLinecap="round"/></>}
+      </svg>
+    ),
+    friends: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        {active
+          ? <><circle cx="9" cy="8" r="3" fill={color}/><path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6" fill={color}/><circle cx="17" cy="8" r="2.5" fill={color} opacity="0.7"/><path d="M19 19c0-2.8-1.8-5.1-4.3-5.9" stroke={color} strokeWidth="1.8" strokeLinecap="round"/></>
+          : <><circle cx="9" cy="8" r="3" stroke={color} strokeWidth="1.8"/><path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke={color} strokeWidth="1.8" strokeLinecap="round" fill="none"/><circle cx="17" cy="8" r="2.5" stroke={color} strokeWidth="1.8"/><path d="M19 19c0-2.8-1.8-5.1-4.3-5.9" stroke={color} strokeWidth="1.8" strokeLinecap="round"/></>}
+      </svg>
+    ),
+    arabic: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        {active
+          ? <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 3c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm3 13H9v-2h2v-4H9v-2h4v6h2v2z" fill={color}/>
+          : <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 3c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm3 13H9v-2h2v-4H9v-2h4v6h2v2z" fill="none" stroke={color} strokeWidth="0.5"/>}
       </svg>
     ),
     ramadan: (
@@ -199,7 +223,7 @@ export default function App() {
     { tab: 'today',   label: 'Home' },
     { tab: 'log',     label: 'Log' },
     { tab: 'progress',label: 'Progress' },
-    { tab: 'ramadan', label: 'Ramadan' },
+    { tab: 'friends', label: 'Friends' },
     { tab: 'profile', label: 'Profile' },
   ]
 
@@ -217,8 +241,11 @@ export default function App() {
             {activeTab === 'today'    && <HomeScreen    entries={todayEntries} onAdd={addFood} onRemove={removeFood} onEdit={editFood} goal={settings.goal} macroGoals={settings.macroGoals} user={user} allEntries={allEntries} />}
             {activeTab === 'log'      && <LogScreen     allEntries={allEntries} />}
             {activeTab === 'progress' && <ProgressScreen allEntries={allEntries} goal={settings.goal} />}
-            {activeTab === 'profile'  && <ProfileScreen  user={user} goal={settings.goal} macroGoals={settings.macroGoals} onUpdateGoals={updateGoals} />}
+            {activeTab === 'profile'  && <ProfileScreen  user={user} goal={settings.goal} macroGoals={settings.macroGoals} onUpdateGoals={updateGoals} onNavigate={setActiveTab} />}
             {activeTab === 'ramadan'  && <RamadanScreen entries={todayEntries} goal={settings.goal} macroGoals={settings.macroGoals} onAdd={addFood} user={user} />}
+            {activeTab === 'friends'  && <FriendsScreen user={user} allEntries={allEntries} goal={settings.goal} />}
+            {activeTab === 'weight'   && <WeightTracker user={user} />}
+            {activeTab === 'arabic'   && <ArabicRecipeScreen onAdd={addFood} user={user} />}
           </>
         )}
       </div>

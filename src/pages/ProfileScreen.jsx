@@ -18,7 +18,7 @@ function calculateGoals({ weight, height, age, sex, activity, goalType }) {
   }
 }
 
-export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals }) {
+export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, onNavigate }) {
   const [editing, setEditing]               = useState(false)
   const [showCalculator, setShowCalculator] = useState(false)
   const [displayName, setDisplayName]       = useState(user?.user_metadata?.full_name || '')
@@ -259,6 +259,27 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals })
             </>
           )}
         </Card>
+
+        {/* Feature shortcuts */}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-hint)', letterSpacing: '0.08em', marginBottom: 10 }}>FEATURES</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+            {[
+              { icon: '🌙', label: 'Ramadan', tab: 'ramadan', color: '#6366f1' },
+              { icon: '⚖️', label: 'Weight', tab: 'weight', color: 'var(--accent)' },
+              { icon: '🫕', label: 'Arabic AI', tab: 'arabic', color: 'var(--orange)' },
+            ].map(({ icon, label, tab, color }) => (
+              <button key={tab} onClick={() => onNavigate?.(tab)} style={{
+                padding: '14px 8px', background: 'var(--bg-card)',
+                borderRadius: 'var(--radius)', border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-card)', textAlign: 'center',
+              }}>
+                <div style={{ fontSize: 24, marginBottom: 6 }}>{icon}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)' }}>{label}</div>
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Action buttons */}
         {user ? (
