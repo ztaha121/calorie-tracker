@@ -6,6 +6,7 @@ import HomeScreen from './pages/HomeScreen.jsx'
 import LogScreen from './pages/LogScreen.jsx'
 import ProgressScreen from './pages/ProgressScreen.jsx'
 import ProfileScreen from './pages/ProfileScreen.jsx'
+import RamadanScreen from './pages/RamadanScreen.jsx'
 
 const today = () => new Date().toISOString().split('T')[0]
 const DEFAULTS = { goal: 2000, macroGoals: { protein: 150, carbs: 200, fat: 65 } }
@@ -59,6 +60,13 @@ function TabIcon({ tab, active }) {
             </>}
       </svg>
     ),
+    ramadan: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        {active
+          ? <path d="M12 3a9 9 0 1 0 9 9c0-.5-.5-1-1-1a7 7 0 1 1-8-8c-.5 0-1-.5-1-1s.5-1 1-1z" fill={color}/>
+          : <path d="M12 3a9 9 0 1 0 9 9c0-.5-.5-1-1-1a7 7 0 1 1-8-8c-.5 0-1-.5-1-1s.5-1 1-1z" stroke={color} strokeWidth="1.8" fill="none"/>}
+      </svg>
+    ),
     profile: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="8" r="4"
@@ -99,6 +107,25 @@ export default function App() {
     }
     return () => listener.subscription.unsubscribe()
   }, [])
+
+  // Schedule daily summary notification at 8pm
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return
+    navigator.serviceWorker.ready.then(reg => {
+      if (!reg.active) return
+      const name = (() => { try { return JSON.parse(localStorage.getItem('settings') || '{}').name || '' } catch { return '' } })()
+      const todayKey = new Date().toISOString().split('T')[0]
+      const scheduled = localStorage.getItem('summary_scheduled_' + todayKey)
+      if (scheduled) return
+      localStorage.setItem('summary_scheduled_' + todayKey, 'true')
+      reg.active.postMessage({
+        type: 'SCHEDULE_DAILY_SUMMARY',
+        calories: 0, // SW will use this as baseline; app reschedules with real data
+        goal: settings.goal,
+        name,
+      })
+    })
+  }, [settings.goal])
 
   useEffect(() => {
     if (!user) return
@@ -169,9 +196,10 @@ export default function App() {
   if (!onboarded) return <OnboardingScreen onDone={() => { setOnboarded(true); const s = JSON.parse(localStorage.getItem('settings')||'null'); if (s) setSettings(s) }} />
 
   const navItems = [
-    { tab: 'today', label: 'Home' },
-    { tab: 'log', label: 'Log' },
-    { tab: 'progress', label: 'Progress' },
+    { tab: 'today',   label: 'Home' },
+    { tab: 'log',     label: 'Log' },
+    { tab: 'progress',label: 'Progress' },
+    { tab: 'ramadan', label: 'Ramadan' },
     { tab: 'profile', label: 'Profile' },
   ]
 
@@ -190,6 +218,7 @@ export default function App() {
             {activeTab === 'log'      && <LogScreen     allEntries={allEntries} />}
             {activeTab === 'progress' && <ProgressScreen allEntries={allEntries} goal={settings.goal} />}
             {activeTab === 'profile'  && <ProfileScreen  user={user} goal={settings.goal} macroGoals={settings.macroGoals} onUpdateGoals={updateGoals} />}
+            {activeTab === 'ramadan'  && <RamadanScreen entries={todayEntries} goal={settings.goal} macroGoals={settings.macroGoals} onAdd={addFood} user={user} />}
           </>
         )}
       </div>
