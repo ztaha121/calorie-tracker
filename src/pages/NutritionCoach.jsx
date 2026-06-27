@@ -1,13 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabase.js'
 
-function isPremium(user) {
-  // Check localStorage cache first for speed
-  const cached = localStorage.getItem('is_premium')
-  if (cached === 'true') return true
-  return false
-}
-
 export default function NutritionCoach({ user, allEntries, goal, macroGoals }) {
   const [messages, setMessages] = useState([
     {
@@ -36,31 +29,6 @@ export default function NutritionCoach({ user, allEntries, goal, macroGoals }) {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Build context from recent entries
-  function buildContext() {
-    const today = new Date().toISOString().split('T')[0]
-    const last7 = []
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(Date.now() - i * 86400000).toISOString().split('T')[0]
-      const entries = allEntries[d] || []
-      if (entries.length > 0) {
-        const cals = Math.round(entries.reduce((s, e) => s + (e.calories || 0), 0))
-        const prot = Math.round(entries.reduce((s, e) => s + (e.protein || 0), 0))
-        last7.push({ date: d, calories: cals, protein: prot, meals: entries.length })
-      }
-    }
-    const todayEntries = allEntries[today] || []
-    const todayCals = Math.round(todayEntries.reduce((s, e) => s + (e.calories || 0), 0))
-    const todayProt = Math.round(todayEntries.reduce((s, e) => s + (e.protein || 0), 0))
-
-    return `USER NUTRITION DATA:
-- Daily calorie goal: ${goal} kcal
-- Macro goals: Protein ${macroGoals.protein}g, Carbs ${macroGoals.carbs}g, Fat ${macroGoals.fat}g
-- Today: ${todayCals} kcal eaten, ${todayProt}g protein, ${goal - todayCals} kcal remaining
-- Last 7 days logged: ${JSON.stringify(last7)}
-- Recent foods today: ${todayEntries.slice(-5).map(e => e.name).join(', ') || 'nothing yet'}`
-  }
-
   async function sendMessage() {
     if (!input.trim() || loading) return
 
@@ -71,6 +39,7 @@ export default function NutritionCoach({ user, allEntries, goal, macroGoals }) {
 
     const userMsg = { role: 'user', content: input.trim() }
     setMessages(prev => [...prev, userMsg])
+    const currentInput = input.trim()
     setInput('')
     setLoading(true)
 
@@ -81,25 +50,50 @@ export default function NutritionCoach({ user, allEntries, goal, macroGoals }) {
     }
 
     try {
-      const context = buildContext()
-      const history = messages.slice(-6) // last 6 messages for context
+      // Get the current session token
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        throw new Error('Not logged in')
+      }
 
       const response = await fetch('https://rnwsnnvdgsxqamvofhno.supabase.co/functions/v1/nutrition-coach', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
-          message: input.trim(),
-          context,
-          history: history.map(m => ({ role: m.role, content: m.content })),
+          message: currentInput,
+          mode: 'chat',
         })
       })
+
       const data = await response.json()
-      if (data.error) throw new Error(data.error)
+
+      if (!response.ok || data.error) {
+        // If the user isn't premium on the backend, show upgrade modal
+        if (data.code === 'NOT_PREMIUM') {
+          setShowUpgrade(true)
+          // Refund the free message count since backend rejected it
+          if (!isPro) {
+            setFreeUsed(freeUsed)
+            localStorage.setItem('coach_free_used', freeUsed)
+          }
+          setLoading(false)
+          return
+        }
+        throw new Error(data.error || 'Something went wrong')
+      }
 
       setMessages(prev => [...prev, { role: 'assistant', content: data.reply }])
-    } catch {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I had trouble responding. Please try again.' }])
+    } catch (err) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Sorry, I had trouble responding. Please try again.',
+      }])
     }
+
     setLoading(false)
   }
 
@@ -171,7 +165,7 @@ export default function NutritionCoach({ user, allEntries, goal, macroGoals }) {
           </div>
         )}
 
-        {/* Upgrade nudge when free messages running low */}
+        {/* Upgrade nudge when 1 free message left */}
         {!isPro && remainingFree === 1 && (
           <div style={{ background: 'var(--accent-dim)', border: '1px solid var(--accent-glow)', borderRadius: 14, padding: '12px 14px', marginBottom: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
             <span style={{ fontSize: 18 }}>✨</span>
@@ -262,7 +256,10 @@ export default function NutritionCoach({ user, allEntries, goal, macroGoals }) {
                 </div>
               ))}
             </div>
-            <button onClick={() => { window.location.href = 'https://calorie-tracker.lemonsqueezy.com/checkout/buy/dcfeff6d-dfd3-4617-b1c2-bfe200389807?redirect_url=https://calorie-tracker-fawn-sigma.vercel.app?upgraded=true' }} style={{ width: '100%', padding: '15px', background: 'var(--accent)', borderRadius: 'var(--radius-sm)', color: '#fff', fontSize: 16, fontWeight: 700, marginBottom: 12, boxShadow: 'var(--shadow-accent)' }}>
+            <button
+              onClick={() => { window.location.href = 'https://calorie-tracker.lemonsqueezy.com/checkout/buy/dcfeff6d-dfd3-4617-b1c2-bfe200389807?redirect_url=https://calorie-tracker-fawn-sigma.vercel.app?upgraded=true' }}
+              style={{ width: '100%', padding: '15px', background: 'var(--accent)', borderRadius: 'var(--radius-sm)', color: '#fff', fontSize: 16, fontWeight: 700, marginBottom: 12, boxShadow: 'var(--shadow-accent)' }}
+            >
               Upgrade for $2.99/month
             </button>
             <button onClick={() => setShowUpgrade(false)} style={{ width: '100%', padding: '12px', background: 'none', color: 'var(--text-muted)', fontSize: 14 }}>Maybe later</button>
