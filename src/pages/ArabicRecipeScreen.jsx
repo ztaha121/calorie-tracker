@@ -23,41 +23,13 @@ export default function ArabicRecipeScreen({ onAdd, user }) {
     setLoading(true); setResult(null); setError('')
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('https://rnwsnnvdgsxqamvofhno.supabase.co/functions/v1/analyze-recipe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 1000,
-          messages: [{
-            role: 'user',
-            content: `You are a nutritionist expert in Arabic, Gulf, Moroccan, and Middle Eastern cuisine.
-
-The user described a dish: "${input}"
-
-Analyze this dish and respond ONLY with a JSON object (no markdown, no explanation):
-{
-  "dish_name_arabic": "اسم الطبق بالعربي",
-  "dish_name_english": "Dish Name in English",
-  "description": "Brief description of the dish in English (1 sentence)",
-  "serving_size": "e.g. 1 bowl (350g)",
-  "calories": 350,
-  "protein": 22,
-  "carbs": 40,
-  "fat": 10,
-  "confidence": "high|medium|low",
-  "main_ingredients": ["ingredient1", "ingredient2", "ingredient3"],
-  "cooking_notes": "Brief note about how cooking method affects nutrition (1 sentence)",
-  "tips": "One practical nutrition tip for this dish"
-}`
-          }]
-        })
+        body: JSON.stringify({ dish: input.trim() })
       })
-
-      const data = await response.json()
-      const text = data.content?.[0]?.text || ''
-      const clean = text.replace(/```json|```/g, '').trim()
-      const parsed = JSON.parse(clean)
+      const parsed = await response.json()
+      if (parsed.error) throw new Error(parsed.error)
       setResult(parsed)
     } catch (e) {
       setError('Could not analyze this dish. Try describing it differently.')
@@ -84,7 +56,6 @@ Analyze this dish and respond ONLY with a JSON object (no markdown, no explanati
   return (
     <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 24, background: 'var(--bg)' }}>
 
-      {/* Header */}
       <div style={{ padding: '20px 20px 16px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
         <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em' }}>Arabic Recipe AI</div>
         <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>Describe any Arabic dish — AI estimates macros</div>
@@ -92,7 +63,6 @@ Analyze this dish and respond ONLY with a JSON object (no markdown, no explanati
 
       <div style={{ padding: '16px 16px 0' }}>
 
-        {/* Input */}
         <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', padding: '18px', marginBottom: 12, boxShadow: 'var(--shadow-card)' }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 10 }}>Describe your dish</div>
           <textarea
@@ -115,7 +85,6 @@ Analyze this dish and respond ONLY with a JSON object (no markdown, no explanati
               background: input.trim() && !loading ? 'var(--accent)' : 'var(--bg-card-2)',
               borderRadius: 'var(--radius-sm)', color: input.trim() && !loading ? '#fff' : 'var(--text-muted)',
               fontSize: 15, fontWeight: 700, boxShadow: input.trim() && !loading ? 'var(--shadow-accent)' : 'none',
-              transition: 'all 0.2s',
             }}
           >
             {loading ? (
@@ -128,62 +97,40 @@ Analyze this dish and respond ONLY with a JSON object (no markdown, no explanati
           {error && <div style={{ color: 'var(--danger)', fontSize: 13, marginTop: 8, padding: '8px 12px', background: 'var(--danger-dim)', borderRadius: 8 }}>{error}</div>}
         </div>
 
-        {/* Examples */}
         {!result && !loading && (
           <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', padding: '16px 18px', marginBottom: 12, boxShadow: 'var(--shadow-card)' }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-hint)', letterSpacing: '0.08em', marginBottom: 12 }}>TRY THESE</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
               {EXAMPLES.map(ex => (
-                <button key={ex} onClick={() => setInput(ex)} style={{
-                  padding: '7px 12px', background: 'var(--bg-card-2)', borderRadius: 99,
-                  fontSize: 13, color: 'var(--text-secondary)', border: '1px solid var(--border)',
-                  fontFamily: 'inherit',
-                }}>{ex}</button>
+                <button key={ex} onClick={() => setInput(ex)} style={{ padding: '7px 12px', background: 'var(--bg-card-2)', borderRadius: 99, fontSize: 13, color: 'var(--text-secondary)', border: '1px solid var(--border)', fontFamily: 'inherit' }}>{ex}</button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Result */}
         {result && (
-          <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', padding: '18px', marginBottom: 12, boxShadow: 'var(--shadow-card)', animation: 'fadeIn 0.3s ease' }} className="fade-in">
-
-            {/* Dish name */}
+          <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', padding: '18px', marginBottom: 12, boxShadow: 'var(--shadow-card)' }} className="fade-in">
             <div style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
                   <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1 }}>{result.dish_name_english}</div>
-                  <div style={{ fontSize: 18, color: 'var(--text-secondary)', marginTop: 4, fontFamily: 'inherit' }}>{result.dish_name_arabic}</div>
+                  <div style={{ fontSize: 18, color: 'var(--text-secondary)', marginTop: 4 }}>{result.dish_name_arabic}</div>
                 </div>
-                <div style={{
-                  padding: '4px 10px', borderRadius: 99, fontSize: 11, fontWeight: 700,
-                  background: `${confidenceColor[result.confidence]}20`,
-                  color: confidenceColor[result.confidence],
-                  border: `1px solid ${confidenceColor[result.confidence]}40`,
-                  flexShrink: 0, marginLeft: 10,
-                }}>
+                <div style={{ padding: '4px 10px', borderRadius: 99, fontSize: 11, fontWeight: 700, background: `${confidenceColor[result.confidence]}20`, color: confidenceColor[result.confidence], border: `1px solid ${confidenceColor[result.confidence]}40`, flexShrink: 0, marginLeft: 10 }}>
                   {result.confidence} confidence
                 </div>
               </div>
               <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>{result.description}</div>
             </div>
 
-            {/* Calories big */}
             <div style={{ background: 'var(--accent-dim)', borderRadius: 14, padding: '16px', marginBottom: 14, textAlign: 'center', border: '1px solid var(--accent-glow)' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.08em', marginBottom: 4 }}>PER {result.serving_size?.toUpperCase()}</div>
-              <div style={{ fontSize: 48, fontWeight: 900, color: 'var(--accent)', letterSpacing: '-0.06em', lineHeight: 1 }}>
-                {Math.round(result.calories * portions)}
-              </div>
+              <div style={{ fontSize: 48, fontWeight: 900, color: 'var(--accent)', letterSpacing: '-0.06em', lineHeight: 1 }}>{Math.round(result.calories * portions)}</div>
               <div style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 4 }}>calories</div>
             </div>
 
-            {/* Macros */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 16 }}>
-              {[
-                { label: 'Protein', value: result.protein, color: 'var(--blue)' },
-                { label: 'Carbs',   value: result.carbs,   color: 'var(--orange)' },
-                { label: 'Fat',     value: result.fat,     color: 'var(--purple)' },
-              ].map(({ label, value, color }) => (
+              {[['Protein', result.protein, 'var(--blue)'], ['Carbs', result.carbs, 'var(--orange)'], ['Fat', result.fat, 'var(--purple)']].map(([label, value, color]) => (
                 <div key={label} style={{ background: 'var(--bg-card-2)', borderRadius: 12, padding: '12px 8px', textAlign: 'center' }}>
                   <div style={{ fontSize: 20, fontWeight: 800, color, letterSpacing: '-0.02em' }}>{Math.round(value * portions)}g</div>
                   <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>{label}</div>
@@ -191,7 +138,6 @@ Analyze this dish and respond ONLY with a JSON object (no markdown, no explanati
               ))}
             </div>
 
-            {/* Portions stepper */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '12px 14px', background: 'var(--bg-card-2)', borderRadius: 12 }}>
               <span style={{ fontSize: 13, color: 'var(--text-muted)', flex: 1 }}>Portions</span>
               <button onClick={() => setPortions(p => Math.max(0.5, p - 0.5))} style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
@@ -199,7 +145,6 @@ Analyze this dish and respond ONLY with a JSON object (no markdown, no explanati
               <button onClick={() => setPortions(p => p + 0.5)} style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--accent)', color: '#fff', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
             </div>
 
-            {/* Ingredients */}
             {result.main_ingredients?.length > 0 && (
               <div style={{ marginBottom: 14 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-hint)', letterSpacing: '0.08em', marginBottom: 8 }}>MAIN INGREDIENTS</div>
@@ -211,28 +156,21 @@ Analyze this dish and respond ONLY with a JSON object (no markdown, no explanati
               </div>
             )}
 
-            {/* Cooking note */}
             {result.cooking_notes && (
               <div style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.15)', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 💡 {result.cooking_notes}
               </div>
             )}
 
-            {/* Tip */}
             {result.tips && (
               <div style={{ background: 'var(--accent-dim)', border: '1px solid var(--accent-glow)', borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 ✦ {result.tips}
               </div>
             )}
 
-            {/* Add to log */}
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={addToLog} style={{ flex: 2, padding: '14px', background: 'var(--accent)', borderRadius: 'var(--radius-sm)', color: '#fff', fontSize: 15, fontWeight: 700, boxShadow: 'var(--shadow-accent)' }}>
-                + Add to today's log
-              </button>
-              <button onClick={() => { setResult(null); setInput('') }} style={{ flex: 1, padding: '14px', background: 'var(--bg-card-2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)', fontSize: 14, border: '1px solid var(--border)' }}>
-                Clear
-              </button>
+              <button onClick={addToLog} style={{ flex: 2, padding: '14px', background: 'var(--accent)', borderRadius: 'var(--radius-sm)', color: '#fff', fontSize: 15, fontWeight: 700, boxShadow: 'var(--shadow-accent)' }}>+ Add to today's log</button>
+              <button onClick={() => { setResult(null); setInput('') }} style={{ flex: 1, padding: '14px', background: 'var(--bg-card-2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)', fontSize: 14, border: '1px solid var(--border)' }}>Clear</button>
             </div>
           </div>
         )}
