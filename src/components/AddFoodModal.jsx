@@ -120,6 +120,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
+  const [listening, setListening] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState('')
   const [showUpgrade, setShowUpgrade] = useState(false)
@@ -139,6 +140,25 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
   const { canScan, scansLeft, isPremium, incrementScan } = useScanLimit(user)
 
   useEffect(() => { window._mizanSetTab = setTab; return () => { delete window._mizanSetTab } }, [])
+
+  function startVoice() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) { alert('Voice search is not supported on this browser.'); return }
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'ar-SA' // Arabic first, falls back to English
+    recognition.interimResults = false
+    recognition.maxAlternatives = 1
+    setListening(true)
+    recognition.start()
+    recognition.onresult = (e) => {
+      const transcript = e.results[0][0].transcript
+      setQuery(transcript)
+      setListening(false)
+      searchFood(transcript)
+    }
+    recognition.onerror = () => setListening(false)
+    recognition.onend = () => setListening(false)
+  }
 
   const inputStyle = {
     width: '100%', padding: '13px 16px',
@@ -335,11 +355,32 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                   value={query}
                   onChange={e => { setQuery(e.target.value); if (e.target.value.length > 2) searchFood(e.target.value) }}
                 />
+                {/* Mic button */}
+                <button onClick={startVoice} style={{
+                  width: 50, height: 50, borderRadius: 12, flexShrink: 0,
+                  background: listening ? 'var(--danger)' : 'var(--bg-card-2)',
+                  border: `1.5px solid ${listening ? 'var(--danger)' : 'var(--border)'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
+                  animation: listening ? 'pulse 1s ease-in-out infinite' : 'none',
+                  transition: 'background 0.2s',
+                }}>
+                  {listening ? '⏹' : '🎙️'}
+                </button>
                 <button onClick={() => searchFood()} style={{
                   padding: '13px 18px', background: 'var(--accent)', borderRadius: 12,
                   color: '#fff', fontWeight: 600, fontSize: 15,
                 }}>{loading ? '...' : 'Search'}</button>
               </div>
+              {listening && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  background: 'var(--danger-dim)', borderRadius: 12, padding: '12px 16px',
+                  marginBottom: 12, border: '1px solid rgba(239,68,68,0.3)',
+                }}>
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--danger)', animation: 'pulse 1s ease-in-out infinite' }} />
+                  <span style={{ fontSize: 14, color: 'var(--danger)', fontWeight: 600 }}>Listening… speak now</span>
+                </div>
+              )}
               {results.length > 0 && <FoodList items={results} onSelect={selectFood} />}
               {results.length === 0 && query && !loading && (
                 <div style={{ textAlign: 'center', padding: '32px 0' }}>
