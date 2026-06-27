@@ -65,5 +65,5 @@ Then in Android Studio: Build → Generate Signed APK
 
 ## Patent connection
 This app is covered by USPTO provisional patent application:
-"AI-Powered Multi-Modal Calorie Tracking and Predictive Nutrition Management System"
-Filed under DTH Technology SARL — co-inventor: Zaynab Taha
+"AI-Powered Food Intelligence Platform with Gulf Climate-Adaptive Food Safety, Arabic Culinary Recognition, and Ramadan-Adaptive Nutrition Management for the MENA Region"
+Filed under DTH Technology SARL — inventor: Zaynab Taha
