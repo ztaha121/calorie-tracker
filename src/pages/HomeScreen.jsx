@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import CalorieRing from '../components/CalorieRing.jsx'
 import MacroBar from '../components/MacroBar.jsx'
 import AddFoodModal from '../components/AddFoodModal.jsx'
+import FoodImage from '../components/FoodImage.jsx'
 
 const MEAL_ORDER = ['Breakfast', 'Lunch', 'Dinner', 'Snack']
 const WATER_GOAL = 8
@@ -233,12 +234,18 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
 
 function EntryRow({ entry, onRemove, onEdit, isLast }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', borderBottom: isLast ? 'none' : '1px solid var(--border-subtle)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', padding: '10px 14px', borderBottom: isLast ? 'none' : '1px solid var(--border-subtle)', gap: 12 }}>
+      {/* Food image */}
+      <FoodImage name={entry.name} meal={entry.meal} size={44} borderRadius={10} />
+
+      {/* Text */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.name}</div>
         <div style={{ fontSize: 12, color: 'var(--text-hint)' }}>{entry.time}{entry.per ? ` · ${entry.per}` : ''} · P {Math.round(entry.protein||0)}g · C {Math.round(entry.carbs||0)}g</div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 10 }}>
+
+      {/* Actions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--accent)', minWidth: 36, textAlign: 'right' }}>{Math.round(entry.calories||0)}</span>
         <button onClick={() => onEdit(entry)} style={{ width: 30, height: 30, background: 'var(--bg-card-2)', borderRadius: 8, color: 'var(--text-muted)', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✏️</button>
         <button onClick={() => { if (window.confirm('Delete this entry?')) onRemove(entry.id) }} style={{ width: 30, height: 30, background: 'var(--danger-dim)', borderRadius: 8, color: 'var(--danger)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>

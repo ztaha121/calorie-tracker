@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import UpgradeScreen from '../pages/UpgradeScreen.jsx'
 import { useScanLimit } from '../hooks/useScanLimit.js'
 import BarcodeScanner from './BarcodeScanner.jsx'
+import FoodImage from './FoodImage.jsx'
 
 const ARABIC_FOODS = [
   { name: 'تمر (Dates)', calories: 277, protein: 1.8, carbs: 75, fat: 0.2, per: '100g' },
@@ -218,16 +219,17 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
     <button
       onClick={() => onSelect(item)}
       style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '13px 16px', background: 'transparent',
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '10px 14px', background: 'transparent',
         textAlign: 'left', width: '100%',
       }}
     >
+      <FoodImage name={item.name} size={42} borderRadius={10} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
-        <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{item.per} · P {item.protein}g · C {item.carbs}g · F {item.fat}g</div>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{item.per} · P {item.protein}g · C {item.carbs}g · F {item.fat}g</div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 12, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--accent)' }}>{item.calories}</span>
         <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>kcal</span>
         <span style={{ fontSize: 16, color: 'var(--text-muted)' }}>›</span>
@@ -290,7 +292,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                 padding: '7px 16px', borderRadius: 999, fontSize: 14, fontWeight: 500,
                 whiteSpace: 'nowrap',
                 background: meal === m ? 'var(--accent)' : 'var(--bg-card-2)',
-                color: meal === m ? '#000' : 'var(--text-secondary)',
+                color: meal === m ? '#fff' : 'var(--text-secondary)',
               }}>{m}</button>
             ))}
           </div>
@@ -303,7 +305,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                   padding: '9px 14px', borderRadius: 12, whiteSpace: 'nowrap', flexShrink: 0,
                   background: tab === id ? 'var(--accent)' : 'var(--bg-card-2)',
-                  color: tab === id ? '#000' : 'var(--text-muted)',
+                  color: tab === id ? '#fff' : 'var(--text-muted)',
                 }}>
                   <span style={{ fontSize: 16 }}>{icon}</span>
                   <span style={{ fontSize: 11, fontWeight: 600 }}>{label}</span>
@@ -324,7 +326,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                 />
                 <button onClick={() => searchFood()} style={{
                   padding: '13px 18px', background: 'var(--accent)', borderRadius: 12,
-                  color: '#000', fontWeight: 600, fontSize: 15,
+                  color: '#fff', fontWeight: 600, fontSize: 15,
                 }}>{loading ? '...' : 'Search'}</button>
               </div>
               {results.length > 0 && <FoodList items={results} onSelect={selectFood} />}
@@ -398,7 +400,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                   <button onClick={() => !canScan ? setShowUpgrade(true) : cameraRef.current?.click()} style={{
                     width: '100%', padding: '15px',
                     background: !canScan ? 'var(--bg-card-2)' : 'var(--accent)',
-                    borderRadius: 14, color: !canScan ? 'var(--accent)' : '#000',
+                    borderRadius: 14, color: !canScan ? 'var(--accent)' : '#fff',
                     fontSize: 16, fontWeight: 600,
                     border: !canScan ? '1px solid rgba(48,209,88,0.3)' : 'none',
                   }}>{!canScan ? 'Upgrade to scan' : '📷 Take photo'}</button>
@@ -425,7 +427,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                   <div style={{ width: 80, height: 80, borderRadius: 24, background: 'var(--bg-card-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36 }}>▦</div>
                   <div style={{ fontSize: 15, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.6, maxWidth: 280 }}>Scan a product barcode to get nutrition info automatically.</div>
                   {barcodeError && <div style={{ color: 'var(--danger)', fontSize: 14, background: 'var(--danger-dim)', padding: '10px 16px', borderRadius: 10, width: '100%', textAlign: 'center' }}>{barcodeError}</div>}
-                  <button onClick={() => setShowBarcode(true)} style={{ width: '100%', padding: '15px', background: 'var(--accent)', borderRadius: 14, color: '#000', fontSize: 16, fontWeight: 600 }}>📷 Scan barcode</button>
+                  <button onClick={() => setShowBarcode(true)} style={{ width: '100%', padding: '15px', background: 'var(--accent)', borderRadius: 14, color: '#fff', fontSize: 16, fontWeight: 600 }}>📷 Scan barcode</button>
                   <div style={{ width: '100%', display: 'flex', gap: 8 }}>
                     <input style={{ flex: 1, ...inputStyle }} placeholder="Or type barcode number..." type="number" id="barcodeInput" onKeyDown={e => e.key === 'Enter' && lookupBarcode(e.target.value)} />
                     <button onClick={() => lookupBarcode(document.getElementById('barcodeInput').value)} style={{ padding: '13px 16px', background: 'var(--bg-card-2)', borderRadius: 12, color: 'var(--text-secondary)', fontSize: 15 }}>Go</button>
@@ -453,7 +455,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                         <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t.calories} kcal · P {t.protein}g · C {t.carbs}g · F {t.fat}g</div>
                       </div>
                       <div style={{ display: 'flex', gap: 8, marginLeft: 10 }}>
-                        <button onClick={() => selectFood(t)} style={{ background: 'var(--accent)', borderRadius: 8, padding: '7px 14px', color: '#000', fontSize: 14, fontWeight: 600 }}>Add</button>
+                        <button onClick={() => selectFood(t)} style={{ background: 'var(--accent)', borderRadius: 8, padding: '7px 14px', color: '#fff', fontSize: 14, fontWeight: 600 }}>Add</button>
                         <button onClick={() => { const next = templates.filter((_, j) => j !== i); setTemplates(next); localStorage.setItem('meal_templates', JSON.stringify(next)) }} style={{ background: 'var(--danger-dim)', borderRadius: 8, width: 32, height: 32, color: 'var(--danger)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                       </div>
                     </div>
@@ -472,7 +474,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                   <input key={key} style={inputStyle} placeholder={label} type="number" value={custom[key]} onChange={e => setCustom(p => ({ ...p, [key]: e.target.value }))} />
                 ))}
               </div>
-              <button onClick={addCustomDirect} style={{ marginTop: 4, padding: '15px', background: 'var(--accent)', borderRadius: 14, color: '#000', fontWeight: 600, fontSize: 16 }}>
+              <button onClick={addCustomDirect} style={{ marginTop: 4, padding: '15px', background: 'var(--accent)', borderRadius: 14, color: '#fff', fontWeight: 600, fontSize: 16 }}>
                 {isEdit ? 'Save changes' : 'Add food'}
               </button>
             </div>
@@ -509,7 +511,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
 
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => setTab('search')} style={{ flex: 1, padding: '14px', background: 'var(--bg-card-2)', borderRadius: 14, color: 'var(--text-secondary)', fontSize: 15 }}>← Back</button>
-                <button onClick={confirmAdd} style={{ flex: 2, padding: '14px', background: 'var(--accent)', borderRadius: 14, color: '#000', fontWeight: 600, fontSize: 15 }}>Add to {meal}</button>
+                <button onClick={confirmAdd} style={{ flex: 2, padding: '14px', background: 'var(--accent)', borderRadius: 14, color: '#fff', fontWeight: 600, fontSize: 15 }}>Add to {meal}</button>
                 <button onClick={() => { const t = { name: selected.name, calories: scaled.calories, protein: scaled.protein, carbs: scaled.carbs, fat: scaled.fat, per: `${portion}g` }; const next = [...templates.filter(x => x.name !== t.name), t]; setTemplates(next); localStorage.setItem('meal_templates', JSON.stringify(next)); alert('⭐ Saved!') }} style={{ padding: '10px 12px', background: 'var(--bg-card-2)', borderRadius: 14, color: 'var(--text-muted)', fontSize: 14 }}>⭐</button>
               </div>
             </div>

@@ -1,3 +1,5 @@
+import FoodImage from '../components/FoodImage.jsx'
+
 export default function LogScreen({ allEntries }) {
   const grouped = {}
   Object.keys(allEntries).sort((a, b) => b.localeCompare(a)).forEach(date => {
@@ -59,15 +61,16 @@ export default function LogScreen({ allEntries }) {
               <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
                 {grouped[date].map((entry, idx) => (
                   <div key={entry.id} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '12px 16px',
+                    display: 'flex', alignItems: 'center',
+                    padding: '10px 14px', gap: 12,
                     borderBottom: idx < grouped[date].length - 1 ? '1px solid var(--border-subtle)' : 'none',
                   }}>
+                    <FoodImage name={entry.name} meal={entry.meal} size={40} borderRadius={9} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.name}</div>
                       <div style={{ fontSize: 12, color: 'var(--text-hint)' }}>{entry.time}{entry.meal ? ` · ${entry.meal}` : ''}</div>
                     </div>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--accent)', marginLeft: 12, flexShrink: 0 }}>{Math.round(entry.calories)}</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}>{Math.round(entry.calories)}</span>
                   </div>
                 ))}
               </div>
