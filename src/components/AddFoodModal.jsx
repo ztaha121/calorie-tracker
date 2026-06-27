@@ -126,6 +126,8 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
   const [showBarcode, setShowBarcode] = useState(false)
   const [selected, setSelected] = useState(null)
   const [portion, setPortion] = useState(isEdit ? (editEntry.portion || 100) : 100)
+  const [portionMode, setPortionMode] = useState('grams') // 'grams' or 'quantity'
+  const [quantity, setQuantity] = useState(1)
   const [meal, setMeal] = useState(isEdit ? (editEntry.meal || getCurrentMeal()) : getCurrentMeal())
   const [custom, setCustom] = useState(isEdit
     ? { name: editEntry.name, calories: editEntry.calories, protein: editEntry.protein, carbs: editEntry.carbs, fat: editEntry.fat }
@@ -197,6 +199,13 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
 
   function selectFood(item) { setSelected(item); setPortion(100); setTab('confirm') }
 
+  // Effective grams: in grams mode = slider value, in quantity mode = quantity * base per (default 100g)
+  function effectiveGrams() {
+    if (portionMode === 'grams') return portion
+    // quantity mode: 1 unit = the food's base amount (default 100g)
+    return quantity * 100
+  }
+
   function getScaled(item, p) {
     const ratio = p / 100
     return { calories: Math.round((Number(item.calories)||0)*ratio), protein: Math.round((Number(item.protein)||0)*ratio*10)/10, carbs: Math.round((Number(item.carbs)||0)*ratio*10)/10, fat: Math.round((Number(item.fat)||0)*ratio*10)/10 }
@@ -204,8 +213,10 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
 
   function confirmAdd() {
     if (!selected) return
-    const scaled = getScaled(selected, portion)
-    onAdd({ ...selected, ...scaled, portion, meal, per: `${portion}g` })
+    const grams = effectiveGrams()
+    const scaled = getScaled(selected, grams)
+    const perLabel = portionMode === 'quantity' ? `${quantity} serving${quantity !== 1 ? 's' : ''}` : `${grams}g`
+    onAdd({ ...selected, ...scaled, portion: grams, meal, per: perLabel })
   }
 
   function addCustomDirect() {
@@ -213,7 +224,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
     onAdd({ name: custom.name, calories: Number(custom.calories), protein: Number(custom.protein)||0, carbs: Number(custom.carbs)||0, fat: Number(custom.fat)||0, meal, per: '1 serving' })
   }
 
-  const scaled = selected ? getScaled(selected, portion) : null
+  const scaled = selected ? getScaled(selected, effectiveGrams()) : null
 
   const FoodRow = ({ item, onSelect }) => (
     <button
@@ -488,16 +499,71 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                 <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Adjust portion below</div>
               </div>
 
-              <div style={{ background: 'var(--bg-card-2)', borderRadius: 14, padding: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <span style={{ fontSize: 15, color: 'var(--text-muted)' }}>Portion size</span>
-                  <span style={{ fontSize: 15, fontWeight: 700 }}>{portion}g</span>
-                </div>
-                <input type="range" min="10" max="500" step="5" value={portion} onChange={e => setPortion(Number(e.target.value))} style={{ width: '100%', accentColor: 'var(--accent)' }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>
-                  <span>10g</span><span>100g</span><span>250g</span><span>500g</span>
-                </div>
+              {/* Mode toggle */}
+              <div style={{ display: 'flex', background: 'var(--bg-card-2)', borderRadius: 12, padding: 4, gap: 4 }}>
+                {[['grams', 'By weight (g)'], ['quantity', 'By quantity']].map(([mode, label]) => (
+                  <button key={mode} onClick={() => setPortionMode(mode)} style={{
+                    flex: 1, padding: '9px', borderRadius: 9, fontSize: 14, fontWeight: 600,
+                    background: portionMode === mode ? 'var(--bg-card)' : 'transparent',
+                    color: portionMode === mode ? 'var(--text)' : 'var(--text-muted)',
+                    boxShadow: portionMode === mode ? 'var(--shadow-card)' : 'none',
+                    transition: 'all 0.15s',
+                  }}>{label}</button>
+                ))}
               </div>
+
+              {portionMode === 'grams' ? (
+                <div style={{ background: 'var(--bg-card-2)', borderRadius: 14, padding: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <span style={{ fontSize: 15, color: 'var(--text-muted)' }}>Weight</span>
+                    <span style={{ fontSize: 15, fontWeight: 700 }}>{portion}g</span>
+                  </div>
+                  <input type="range" min="10" max="500" step="5" value={portion} onChange={e => setPortion(Number(e.target.value))} style={{ width: '100%', accentColor: 'var(--accent)' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>
+                    <span>10g</span><span>100g</span><span>250g</span><span>500g</span>
+                  </div>
+                  {/* Quick presets */}
+                  <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
+                    {[50, 100, 150, 200, 300].map(g => (
+                      <button key={g} onClick={() => setPortion(g)} style={{
+                        flex: 1, padding: '7px 4px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+                        background: portion === g ? 'var(--accent)' : 'var(--bg-card)',
+                        color: portion === g ? '#fff' : 'var(--text-muted)',
+                        border: `1px solid ${portion === g ? 'var(--accent)' : 'var(--border)'}`,
+                      }}>{g}g</button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ background: 'var(--bg-card-2)', borderRadius: 14, padding: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <span style={{ fontSize: 15, color: 'var(--text-muted)' }}>Number of servings</span>
+                    <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--accent)' }}>{quantity}</span>
+                  </div>
+                  {/* +/- stepper */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <button onClick={() => setQuantity(q => Math.max(0.5, q - 0.5))} style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: 24, fontWeight: 300, color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                    <input
+                      type="number" min="0.5" step="0.5"
+                      value={quantity}
+                      onChange={e => setQuantity(Math.max(0.5, Number(e.target.value) || 0.5))}
+                      style={{ flex: 1, padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)', fontSize: 20, fontWeight: 700, textAlign: 'center', fontFamily: 'inherit' }}
+                    />
+                    <button onClick={() => setQuantity(q => q + 0.5)} style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--accent)', fontSize: 24, fontWeight: 300, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                  </div>
+                  {/* Quick qty presets */}
+                  <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
+                    {[0.5, 1, 1.5, 2, 3].map(q => (
+                      <button key={q} onClick={() => setQuantity(q)} style={{
+                        flex: 1, padding: '7px 4px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+                        background: quantity === q ? 'var(--accent)' : 'var(--bg-card)',
+                        color: quantity === q ? '#fff' : 'var(--text-muted)',
+                        border: `1px solid ${quantity === q ? 'var(--accent)' : 'var(--border)'}`,
+                      }}>{q}×</button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Macro tiles */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>

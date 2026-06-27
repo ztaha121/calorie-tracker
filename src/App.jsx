@@ -186,7 +186,7 @@ export default function App() {
           </div>
         ) : (
           <>
-            {activeTab === 'today'    && <HomeScreen    entries={todayEntries} onAdd={addFood} onRemove={removeFood} onEdit={editFood} goal={settings.goal} macroGoals={settings.macroGoals} user={user} />}
+            {activeTab === 'today'    && <HomeScreen    entries={todayEntries} onAdd={addFood} onRemove={removeFood} onEdit={editFood} goal={settings.goal} macroGoals={settings.macroGoals} user={user} allEntries={allEntries} />}
             {activeTab === 'log'      && <LogScreen     allEntries={allEntries} />}
             {activeTab === 'progress' && <ProgressScreen allEntries={allEntries} goal={settings.goal} />}
             {activeTab === 'profile'  && <ProfileScreen  user={user} goal={settings.goal} macroGoals={settings.macroGoals} onUpdateGoals={updateGoals} />}
