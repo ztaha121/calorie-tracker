@@ -71,7 +71,7 @@ ${bar} ${pct}%
 💧 Water: ${water}/${WATER_GOAL} glasses
 🔁 Streak: ${streak} day${streak !== 1 ? 's' : ''}
 ━━━━━━━━━━━━━━━
-Tracked with Mizan ⚖️
+Tracked with Mizan
 calorie-tracker-fawn-sigma.vercel.app`
 }
 
@@ -197,47 +197,31 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
   })
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 24, background: 'var(--bg)' }}>
+    <div className="screen">
       <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
 
-      {/* Toast */}
-      {toast && (
-        <div style={{
-          position: 'fixed', top: 56, left: '50%', transform: 'translateX(-50%)',
-          background: 'var(--bg-card)', borderRadius: 999, padding: '10px 20px', zIndex: 1000,
-          fontSize: 14, fontWeight: 600, color: 'var(--accent)', whiteSpace: 'nowrap',
-          animation: 'fadeInDown 0.3s ease', boxShadow: 'var(--shadow-soft)',
-          border: '1px solid var(--accent-dim)',
-        }}>{toast}</div>
-      )}
+      {toast && <div className="toast-glass">{toast}</div>}
 
-      {/* Header */}
-      <div style={{ padding: '20px 20px 0', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
+      <div className="home-hero">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
           <div>
             <div style={{ fontSize: 12, color: 'var(--text-hint)', fontWeight: 500, marginBottom: 2 }}>
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </div>
-            <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em' }}>
-              {name ? `${greeting}, ${name} 👋` : greeting}
+            <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.04em' }}>
+              {name ? `${greeting}, ${name}` : greeting}
             </div>
           </div>
 
           {streak > 0 && (
-            <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              background: streak >= 7 ? 'rgba(249,115,22,0.10)' : 'var(--bg-card-2)',
-              border: `1px solid ${streak >= 7 ? 'rgba(249,115,22,0.3)' : 'var(--border)'}`,
-              borderRadius: 14, padding: '8px 12px', minWidth: 56, marginTop: 2,
-            }}>
-              <span style={{ fontSize: 20 }}>{streak >= 30 ? '🔥' : streak >= 7 ? '⚡' : '🔁'}</span>
-              <span style={{ fontSize: 16, fontWeight: 800, color: streak >= 7 ? '#f97316' : 'var(--text)', letterSpacing: '-0.03em', lineHeight: 1.1 }}>{streak}</span>
-              <span style={{ fontSize: 9, color: 'var(--text-hint)', fontWeight: 600, letterSpacing: '0.04em' }}>DAY{streak !== 1 ? 'S' : ''}</span>
+            <div className={`streak-badge${streak >= 7 ? ' hot' : ''}`}>
+              <div className="streak-badge-num" style={{ color: streak >= 7 ? '#f97316' : 'var(--text)' }}>{streak}</div>
+              <div className="streak-badge-label">DAY{streak !== 1 ? 'S' : ''}</div>
             </div>
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20, paddingBottom: 20 }}>
+        <div className="home-ring-row">
           <CalorieRing consumed={calories} goal={goal} />
           <div style={{ flex: 1 }}>
             <div style={{
@@ -265,7 +249,7 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
       </div>
 
       {/* Macros */}
-      <div style={{ margin: '12px 16px 0', background: 'var(--bg-card)', borderRadius: 'var(--radius)', padding: '16px 18px', boxShadow: 'var(--shadow-card)' }}>
+      <div className="glass-card glass-card-pad" style={{ margin: '12px 16px 0' }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 14 }}>Macros</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <MacroBar label="Protein" value={totals.protein} goal={macroGoals.protein} color="var(--blue)" />
@@ -346,11 +330,14 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
         </div>
       </div>
 
-      {/* Action buttons */}
-      <div style={{ padding: '16px 16px 0', display: 'flex', gap: 10 }}>
-        <button onClick={() => { setEditEntry(null); setShowModal(true) }} style={{ flex: 1, padding: '15px', background: 'var(--accent)', borderRadius: 'var(--radius)', color: '#fff', fontSize: 16, fontWeight: 700, letterSpacing: '-0.01em', boxShadow: 'var(--shadow-accent)' }}>+ Log food</button>
-        <button onClick={() => { setEditEntry(null); setShowModal(true); setTimeout(() => window._mizanSetTab?.('scan'), 100) }} style={{ width: 54, height: 54, background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: 22, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-card)' }}>📷</button>
-        <button onClick={() => setShowShareSheet(true)} style={{ width: 54, height: 54, background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: 22, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-card)' }}>📤</button>
+      <div className="action-row">
+        <button onClick={() => { setEditEntry(null); setShowModal(true) }} className="action-btn-main">+ Log food</button>
+        <button onClick={() => { setEditEntry(null); setShowModal(true); setTimeout(() => window._mizanSetTab?.('scan'), 100) }} className="action-btn-icon" aria-label="Scan food">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button onClick={() => setShowShareSheet(true)} className="action-btn-icon" aria-label="Share">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+        </button>
       </div>
 
       {/* Food log */}
@@ -361,10 +348,10 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
         </div>
 
         {entries.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 20px', background: 'var(--bg-card)', borderRadius: 'var(--radius)', border: '1.5px dashed var(--border)' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🍽️</div>
-            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>Nothing logged yet</div>
-            <div style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>Tap <strong>+ Log food</strong> to start tracking.</div>
+          <div className="empty-state">
+            <img src="/logo.png" alt="Mizan" />
+            <div className="empty-state-title">Nothing logged yet</div>
+            <div className="empty-state-sub">Tap <strong>+ Log food</strong> to start tracking.</div>
           </div>
         ) : (
           <>
@@ -405,8 +392,8 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
 
       {/* Share sheet */}
       {showShareSheet && (
-        <div onClick={() => setShowShareSheet(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-          <div onClick={e => e.stopPropagation()} className="sheet" style={{ width: '100%', maxWidth: 430, background: 'var(--bg-card)', borderRadius: '20px 20px 0 0', padding: '24px 20px 40px', border: '1px solid var(--border)', borderBottom: 'none' }}>
+        <div className="modal-overlay" onClick={() => setShowShareSheet(false)}>
+          <div className="modal-sheet sheet" onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <span style={{ fontSize: 17, fontWeight: 700 }}>Share your day</span>
               <button onClick={() => setShowShareSheet(false)} style={{ background: 'var(--bg-card-2)', borderRadius: 99, width: 30, height: 30, color: 'var(--text-muted)', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>

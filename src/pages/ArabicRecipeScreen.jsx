@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ScreenLayout from '../components/ScreenLayout.jsx'
 
 const EXAMPLES = [
   'كبسة دجاج مع أرز بالزعفران',
@@ -54,16 +55,8 @@ export default function ArabicRecipeScreen({ onAdd, user }) {
   const confidenceColor = { high: 'var(--accent)', medium: 'var(--orange)', low: 'var(--danger)' }
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 24, background: 'var(--bg)' }}>
-
-      <div style={{ padding: '20px 20px 16px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em' }}>Arabic Recipe AI</div>
-        <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>Describe any Arabic dish — AI estimates macros</div>
-      </div>
-
-      <div style={{ padding: '16px 16px 0' }}>
-
-        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', padding: '18px', marginBottom: 12, boxShadow: 'var(--shadow-card)' }}>
+    <ScreenLayout title="Arabic Recipe AI" subtitle="Describe any Arabic dish — AI estimates macros">
+        <div className="glass-card glass-card-pad" style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 10 }}>Describe your dish</div>
           <textarea
             value={input}
@@ -92,7 +85,7 @@ export default function ArabicRecipeScreen({ onAdd, user }) {
                 <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />
                 Analyzing…
               </span>
-            ) : '✦ Analyze with AI'}
+            ) : 'Analyze with AI'}
           </button>
           {error && <div style={{ color: 'var(--danger)', fontSize: 13, marginTop: 8, padding: '8px 12px', background: 'var(--danger-dim)', borderRadius: 8 }}>{error}</div>}
         </div>
@@ -174,7 +167,6 @@ export default function ArabicRecipeScreen({ onAdd, user }) {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </ScreenLayout>
   )
 }

@@ -1,4 +1,5 @@
 import FoodImage from '../components/FoodImage.jsx'
+import ScreenLayout from '../components/ScreenLayout.jsx'
 
 export default function LogScreen({ allEntries }) {
   const grouped = {}
@@ -35,49 +36,41 @@ export default function LogScreen({ allEntries }) {
   }
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 24, background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{ padding: '20px 20px 16px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em' }}>Food log</div>
-        {dates.length > 0 && (
-          <button onClick={exportCSV} style={{ background: 'var(--accent-dim)', borderRadius: 10, padding: '7px 14px', color: 'var(--accent)', fontSize: 13, fontWeight: 600, border: '1px solid var(--accent-glow)' }}>Export CSV</button>
-        )}
-      </div>
-
-      <div style={{ padding: '16px 16px 0' }}>
-        {dates.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-card)', borderRadius: 'var(--radius)', border: '1.5px dashed var(--border)', marginTop: 8 }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
-            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>No entries yet</div>
-            <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>Start logging food from the home tab.</div>
-          </div>
-        ) : (
-          dates.map(date => (
-            <div key={date} style={{ marginBottom: 24 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)' }}>{formatDate(date)}</span>
-                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}>{dayTotal(grouped[date])} kcal</span>
-              </div>
-              <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
-                {grouped[date].map((entry, idx) => (
-                  <div key={entry.id} style={{
-                    display: 'flex', alignItems: 'center',
-                    padding: '10px 14px', gap: 12,
-                    borderBottom: idx < grouped[date].length - 1 ? '1px solid var(--border-subtle)' : 'none',
-                  }}>
-                    <FoodImage name={entry.name} meal={entry.meal} size={40} borderRadius={9} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.name}</div>
-                      <div style={{ fontSize: 12, color: 'var(--text-hint)' }}>{entry.time}{entry.meal ? ` · ${entry.meal}` : ''}</div>
-                    </div>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}>{Math.round(entry.calories)}</span>
-                  </div>
-                ))}
-              </div>
+    <ScreenLayout
+      title="Food log"
+      subtitle="Your complete meal history"
+      headerRight={dates.length > 0 ? (
+        <button onClick={exportCSV} className="btn-accent-pill">Export CSV</button>
+      ) : null}
+    >
+      {dates.length === 0 ? (
+        <div className="empty-state">
+          <img src="/logo.png" alt="Mizan" />
+          <div className="empty-state-title">No entries yet</div>
+          <div className="empty-state-sub">Start logging food from the Home tab.</div>
+        </div>
+      ) : (
+        dates.map(date => (
+          <div key={date} style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)' }}>{formatDate(date)}</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}>{dayTotal(grouped[date])} kcal</span>
             </div>
-          ))
-        )}
-      </div>
-    </div>
+            <div className="ios-group">
+              {grouped[date].map((entry, idx) => (
+                <div key={entry.id} className="ios-row" style={{ borderTop: idx > 0 ? undefined : 'none' }}>
+                  <FoodImage name={entry.name} meal={entry.meal} size={40} borderRadius={9} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="ios-row-label" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.name}</div>
+                    <div className="ios-row-sub">{entry.time}{entry.meal ? ` · ${entry.meal}` : ''}</div>
+                  </div>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}>{Math.round(entry.calories)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
+    </ScreenLayout>
   )
 }

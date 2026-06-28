@@ -1,15 +1,14 @@
-﻿import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+﻿import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'GET') {
     return new Response('OK', { status: 200 })
   }
 
   try {
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
     const contentType = req.headers.get('content-type') || ''
@@ -39,7 +38,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'No email in payload' }), { status: 400 })
     }
 
-    if (productPermalink !== 'cyfiz') {
+   if (!productPermalink.includes('cyfiz')) {
       return new Response(JSON.stringify({ skipped: 'Not Mizan Pro product' }), { status: 200 })
     }
 

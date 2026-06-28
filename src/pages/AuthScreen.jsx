@@ -18,6 +18,36 @@ async function authenticateBiometric() {
   return JSON.parse(localStorage.getItem('biometric_user') || 'null')
 }
 
+const ORBITS = [
+  { color: '#3b82f6', label: 'Protein' },
+  { color: '#f97316', label: 'Carbs' },
+  { color: '#8b5cf6', label: 'Fat' },
+]
+
+function MacroOrbits() {
+  return (
+    <div className="auth-orbit-wrap" aria-hidden="true">
+      {ORBITS.map((o, i) => (
+        <div key={o.label} className={`auth-orbit auth-orbit-${i + 1}`}>
+          <div className="auth-orbit-dot" style={{ color: o.color, background: o.color }} />
+        </div>
+      ))}
+      <div className="auth-logo-glow">
+        <img src="/logo.png" alt="Mizan" className="auth-logo-img" />
+      </div>
+    </div>
+  )
+}
+
+function FaceIdIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M8 10V9a2 2 0 0 1 4 0v1M14 10V9a2 2 0 0 1 4 0v1M9 15s1 2 3 2 3-2 3-2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+      <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="1.6"/>
+    </svg>
+  )
+}
+
 export default function AuthScreen() {
   const [mode, setMode] = useState('login')
   const [email, setEmail] = useState('')
@@ -30,6 +60,12 @@ export default function AuthScreen() {
   const [biometricRegistered, setBiometricRegistered] = useState(false)
 
   useEffect(() => { isBiometricAvailable().then(ok => setBiometricAvailable(ok)); setBiometricRegistered(!!localStorage.getItem('biometric_id')) }, [])
+
+  function switchMode(next) {
+    setMode(next)
+    setError('')
+    setMessage('')
+  }
 
   async function handleSubmit() {
     setError(''); setMessage('')
@@ -64,65 +100,113 @@ export default function AuthScreen() {
     setLoading(false)
   }
 
-  const inp = { width: '100%', padding: '14px 16px', background: 'var(--bg-input)', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: 16, fontFamily: 'inherit' }
+  const isForgot = mode === 'forgot'
+  const isSignup = mode === 'signup'
 
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
-      {/* Top green bar */}
-      <div style={{ height: 4, background: 'var(--accent)' }} />
+    <div className="auth-screen">
+      <div className="auth-ambient">
+        <div className="auth-blob auth-blob-1" />
+        <div className="auth-blob auth-blob-2" />
+        <div className="auth-blob auth-blob-3" />
+      </div>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px 28px', maxWidth: 430, margin: '0 auto', width: '100%' }}>
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, boxShadow: 'var(--shadow-accent)' }}>⚖️</div>
-          <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em' }}>Mizan</div>
+      <div className="auth-hero">
+        <MacroOrbits />
+        <div className="auth-brand">Mizan</div>
+        <div className="auth-tagline">Balance your nutrition, beautifully</div>
+        <div className="auth-stats">
+          <span className="auth-stat-pill">40+ Arabic foods</span>
+          <span className="auth-stat-pill">AI coaching</span>
+          <span className="auth-stat-pill">Ramadan mode</span>
         </div>
+      </div>
 
-        <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 6 }}>
-          {mode === 'forgot' ? 'Reset password' : mode === 'login' ? 'Welcome back' : 'Create account'}
+      <div className="auth-sheet">
+        <div className="auth-sheet-handle" />
+
+        {!isForgot && (
+          <div className="auth-segment" role="tablist">
+            <button
+              role="tab"
+              aria-selected={mode === 'login'}
+              className={`auth-segment-btn${mode === 'login' ? ' active' : ''}`}
+              onClick={() => switchMode('login')}
+            >
+              Sign in
+            </button>
+            <button
+              role="tab"
+              aria-selected={isSignup}
+              className={`auth-segment-btn${isSignup ? ' active' : ''}`}
+              onClick={() => switchMode('signup')}
+            >
+              Create account
+            </button>
+          </div>
+        )}
+
+        <h1 className="auth-heading">
+          {isForgot ? 'Reset password' : mode === 'login' ? 'Welcome back' : 'Start your journey'}
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: 15, marginBottom: 28 }}>
-          {mode === 'forgot' ? "We'll send a reset link to your email." : mode === 'login' ? 'Sign in to continue tracking.' : 'Start your nutrition journey today.'}
+        <p className="auth-sub">
+          {isForgot
+            ? "We'll send a reset link to your email."
+            : mode === 'login'
+              ? 'Pick up right where you left off.'
+              : 'Track macros, build streaks, feel your best.'}
         </p>
 
         {mode === 'login' && biometricAvailable && biometricRegistered && (
-          <button onClick={handleBiometric} style={{ width: '100%', padding: '14px', marginBottom: 14, background: 'var(--bg-card)', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: 15, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: 'var(--shadow-card)' }}>
-            <span style={{ fontSize: 20 }}>🔒</span> Sign in with Face ID / Fingerprint
+          <button type="button" onClick={handleBiometric} className="auth-biometric">
+            <FaceIdIcon />
+            Sign in with Face ID
           </button>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {mode === 'signup' && <input style={inp} placeholder="Full name" value={name} onChange={e => setName(e.target.value)} />}
-          <input style={inp} placeholder="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} autoCapitalize="none" />
-          {mode !== 'forgot' && <input style={inp} placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmit()} />}
-
-          {mode === 'login' && (
-            <button onClick={handleForgotPassword} style={{ background: 'none', color: 'var(--text-hint)', fontSize: 13, textAlign: 'right', textDecoration: 'underline' }}>Forgot password?</button>
+        <div className="auth-group">
+          {isSignup && (
+            <div className="auth-field">
+              <label htmlFor="auth-name">Name</label>
+              <input id="auth-name" placeholder="Your name" value={name} onChange={e => setName(e.target.value)} autoComplete="name" />
+            </div>
           )}
-
-          {error && <div style={{ color: 'var(--danger)', fontSize: 13, padding: '10px 14px', background: 'var(--danger-dim)', borderRadius: 10, border: '1px solid rgba(239,68,68,0.2)' }}>{error}</div>}
-          {message && <div style={{ color: 'var(--accent)', fontSize: 13, padding: '10px 14px', background: 'var(--accent-dim)', borderRadius: 10, border: '1px solid var(--accent-glow)' }}>{message}</div>}
-
-          {mode === 'forgot'
-            ? <button onClick={handleForgotPassword} disabled={loading} style={{ padding: '15px', background: 'var(--accent)', borderRadius: 'var(--radius-sm)', color: '#fff', fontSize: 16, fontWeight: 700, opacity: loading ? 0.7 : 1, boxShadow: 'var(--shadow-accent)' }}>{loading ? 'Sending…' : 'Send reset email'}</button>
-            : <button onClick={handleSubmit} disabled={loading} style={{ padding: '15px', background: 'var(--accent)', borderRadius: 'var(--radius-sm)', color: '#fff', fontSize: 16, fontWeight: 700, opacity: loading ? 0.7 : 1, boxShadow: 'var(--shadow-accent)', marginTop: 4 }}>{loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}</button>
-          }
+          <div className="auth-field">
+            <label htmlFor="auth-email">Email</label>
+            <input id="auth-email" type="email" placeholder="you@email.com" value={email} onChange={e => setEmail(e.target.value)} autoCapitalize="none" autoComplete="email" />
+          </div>
+          {!isForgot && (
+            <div className="auth-field">
+              <label htmlFor="auth-pass">Password</label>
+              <input id="auth-pass" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmit()} autoComplete={isSignup ? 'new-password' : 'current-password'} />
+            </div>
+          )}
         </div>
 
-        <div style={{ marginTop: 24, textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {mode === 'login' && (
-            <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>
-              No account?{' '}
-              <button onClick={() => { setMode('signup'); setError(''); setMessage('') }} style={{ background: 'none', color: 'var(--accent)', fontSize: 14, fontWeight: 700 }}>Sign up</button>
-            </div>
-          )}
-          {mode !== 'login' && (
-            <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>
-              Back to{' '}
-              <button onClick={() => { setMode('login'); setError(''); setMessage('') }} style={{ background: 'none', color: 'var(--accent)', fontSize: 14, fontWeight: 700 }}>Sign in</button>
-            </div>
-          )}
-          <button onClick={() => window.dispatchEvent(new CustomEvent('skip-auth'))} style={{ background: 'none', color: 'var(--text-hint)', fontSize: 13, textDecoration: 'underline' }}>Use without an account</button>
+        {mode === 'login' && !isForgot && (
+          <button type="button" onClick={() => switchMode('forgot')} className="auth-forgot">Forgot password?</button>
+        )}
+
+        {error && <div className="auth-alert auth-alert-error" role="alert">{error}</div>}
+        {message && <div className="auth-alert auth-alert-success" role="status">{message}</div>}
+
+        {isForgot ? (
+          <button type="button" onClick={handleForgotPassword} disabled={loading} className="auth-cta">
+            {loading ? 'Sending…' : 'Send reset email'}
+          </button>
+        ) : (
+          <button type="button" onClick={handleSubmit} disabled={loading} className="auth-cta">
+            {loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
+          </button>
+        )}
+
+        <div className="auth-footer">
+          {isForgot ? (
+            <button type="button" onClick={() => switchMode('login')} className="auth-link">Back to sign in</button>
+          ) : null}
+          <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('skip-auth'))} className="auth-skip">
+            Continue without an account
+          </button>
         </div>
       </div>
     </div>

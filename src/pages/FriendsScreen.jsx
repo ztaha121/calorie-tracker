@@ -32,6 +32,8 @@ function ProgressRing({ pct, size = 52, color = '#00b96b', calories, goal }) {
   )
 }
 
+import ScreenLayout from '../components/ScreenLayout.jsx'
+
 export default function FriendsScreen({ user, allEntries, goal }) {
   const [myCode, setMyCode]         = useState('')
   const [friends, setFriends]       = useState([])
@@ -215,36 +217,24 @@ export default function FriendsScreen({ user, allEntries, goal }) {
   const myRank = leaderboard.findIndex(l => l.isMe) + 1
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 24, background: 'var(--bg)' }}>
-
-      {/* Header */}
-      <div style={{ padding: '20px 20px 16px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em' }}>Friends</div>
-        <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>Live leaderboard · updates every 30s</div>
-      </div>
-
-      <div style={{ padding: '16px 16px 0' }}>
-
-        {/* My code card */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', padding: '18px', marginBottom: 12, boxShadow: 'var(--shadow-card)' }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-hint)', letterSpacing: '0.08em', marginBottom: 10 }}>YOUR FRIEND CODE</div>
+    <ScreenLayout title="Friends" subtitle="Live leaderboard · updates every 30s">
+        <div className="glass-card glass-card-pad" style={{ marginBottom: 12 }}>
+          <div className="section-label">YOUR FRIEND CODE</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
             <div style={{ flex: 1, background: 'var(--bg-card-2)', borderRadius: 12, padding: '14px 18px', textAlign: 'center' }}>
               <span style={{ fontSize: 28, fontWeight: 900, letterSpacing: '0.18em', color: 'var(--accent)', fontFamily: 'monospace' }}>{myCode || '……'}</span>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={copyCode} style={{ flex: 1, padding: '11px', background: 'var(--accent-dim)', borderRadius: 10, color: 'var(--accent)', fontSize: 13, fontWeight: 700, border: '1px solid var(--accent-glow)' }}>
-              {copied ? '✓ Copied!' : '📋 Copy'}
+            <button onClick={copyCode} className="btn-secondary" style={{ flex: 1, color: 'var(--accent)', borderColor: 'var(--accent-glow)' }}>
+              {copied ? 'Copied!' : 'Copy'}
             </button>
-            <button onClick={shareCode} style={{ flex: 1, padding: '11px', background: 'var(--accent)', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, boxShadow: 'var(--shadow-accent)' }}>
-              📤 Share
-            </button>
+            <button onClick={shareCode} className="btn-primary" style={{ flex: 1, padding: '11px' }}>Share</button>
           </div>
         </div>
 
         {/* Add friend */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', padding: '18px', marginBottom: 12, boxShadow: 'var(--shadow-card)' }}>
+        <div className="glass-card glass-card-pad" style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 12 }}>Add a friend</div>
           <div style={{ display: 'flex', gap: 8 }}>
             <input
@@ -262,7 +252,7 @@ export default function FriendsScreen({ user, allEntries, goal }) {
         </div>
 
         {/* Privacy toggle */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', padding: '14px 18px', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: 'var(--shadow-card)' }}>
+        <div className="glass-card glass-card-pad" style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 600 }}>Share my progress</div>
             <div style={{ fontSize: 12, color: 'var(--text-hint)', marginTop: 2 }}>Friends can see your daily calories</div>
@@ -278,15 +268,14 @@ export default function FriendsScreen({ user, allEntries, goal }) {
 
         {/* Leaderboard */}
         {leaderboard.length > 1 ? (
-          <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
+          <div className="ios-group">
             <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)' }}>Today's leaderboard</div>
               <div style={{ fontSize: 12, color: 'var(--text-hint)' }}>Rank #{myRank}</div>
             </div>
 
             {leaderboard.map((person, idx) => {
-              const medals = ['🥇', '🥈', '🥉']
-              const medal  = medals[idx] || `${idx + 1}.`
+              const medal  = idx < 3 ? `#${idx + 1}` : `${idx + 1}.`
               const color  = person.pct >= 1 ? 'var(--accent)' : person.pct >= 0.75 ? 'var(--orange)' : 'var(--blue)'
 
               return (
@@ -327,13 +316,12 @@ export default function FriendsScreen({ user, allEntries, goal }) {
             })}
           </div>
         ) : (
-          <div style={{ textAlign: 'center', padding: '40px 20px', background: 'var(--bg-card)', borderRadius: 'var(--radius)', border: '1.5px dashed var(--border)' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>👥</div>
-            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>No friends yet</div>
-            <div style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>Share your code above to add friends and compete on the leaderboard.</div>
+          <div className="empty-state">
+            <img src="/logo.png" alt="Mizan" />
+            <div className="empty-state-title">No friends yet</div>
+            <div className="empty-state-sub">Share your code above to add friends and compete on the leaderboard.</div>
           </div>
         )}
-      </div>
-    </div>
+    </ScreenLayout>
   )
 }

@@ -20,6 +20,8 @@ function calculateGoals({ weight, height, age, sex, activity, goalType }) {
   }
 }
 
+import ScreenLayout from '../components/ScreenLayout.jsx'
+
 export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, onNavigate }) {
   const [editing, setEditing]               = useState(false)
   const [showCalculator, setShowCalculator] = useState(false)
@@ -89,27 +91,24 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
   })
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg)', paddingBottom: 24 }}>
-
-      {/* Header */}
-      <div style={{ padding: '20px 20px 20px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 16 }}>Profile</div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+    <ScreenLayout
+      title="Profile"
+      subtitle={user?.email || 'Local mode'}
+      headerExtra={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 16 }}>
           <div style={{ width: 56, height: 56, borderRadius: 99, background: 'var(--accent-dim)', border: '2px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, color: 'var(--accent)', fontWeight: 700, flexShrink: 0 }}>
             {user?.email?.[0]?.toUpperCase() || '?'}
           </div>
           <div>
             <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.01em' }}>{user?.user_metadata?.full_name || 'User'}</div>
-            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{user?.email || 'Local mode'}</div>
+            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{user ? 'Account' : 'Guest mode'}</div>
           </div>
         </div>
-      </div>
-
-      <div style={{ padding: '16px 16px 0' }}>
+      }
+    >
 
         {/* Daily goals card */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: 12, boxShadow: 'var(--shadow-card)' }}>
+        <div className="ios-group" style={{ marginBottom: 12 }}>
           <div style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)' }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.04em' }}>DAILY GOALS</span>
             <button onClick={() => setEditing(!editing)} style={{ background: editing ? 'var(--danger-dim)' : 'var(--accent-dim)', borderRadius: 8, padding: '5px 14px', color: editing ? 'var(--danger)' : 'var(--accent)', fontSize: 13, fontWeight: 600, border: `1px solid ${editing ? 'rgba(239,68,68,0.3)' : 'var(--accent-glow)'}` }}>
@@ -192,11 +191,11 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
 
         {/* Account actions */}
         {user ? (
-          <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: 12, boxShadow: 'var(--shadow-card)' }}>
+          <div className="ios-group" style={{ marginBottom: 12 }}>
             {[
-              { label: '✨ Restore purchase', color: 'var(--accent)', action: async () => { const { data } = await supabase.from('profiles').select('is_premium').eq('id', user.id).single(); if (data?.is_premium) alert('✨ Pro access confirmed!'); else window.location.href = GUMROAD_URL } },
-              { label: '📤 Share Mizan', color: 'var(--text)', action: () => { if (navigator.share) navigator.share({ title: 'Mizan', text: 'Track nutrition with AI!', url: 'https://calorie-tracker-fawn-sigma.vercel.app' }); else { navigator.clipboard.writeText('https://calorie-tracker-fawn-sigma.vercel.app'); alert('Link copied!') } } },
-              { label: '⚙️ Manage account', color: 'var(--text-muted)', action: () => setShowManageModal(true) },
+              { label: 'Restore purchase', color: 'var(--accent)', action: async () => { const { data } = await supabase.from('profiles').select('is_premium').eq('id', user.id).single(); if (data?.is_premium) alert('Pro access confirmed!'); else window.location.href = GUMROAD_URL } },
+              { label: 'Share Mizan', color: 'var(--text)', action: () => { if (navigator.share) navigator.share({ title: 'Mizan', text: 'Track nutrition with AI!', url: 'https://calorie-tracker-fawn-sigma.vercel.app' }); else { navigator.clipboard.writeText('https://calorie-tracker-fawn-sigma.vercel.app'); alert('Link copied!') } } },
+              { label: 'Manage account', color: 'var(--text-muted)', action: () => setShowManageModal(true) },
               { label: 'Sign out', color: 'var(--danger)', action: () => supabase.auth.signOut() },
             ].map(({ label, color, action }, i) => (
               <button key={label} onClick={action} style={{ width: '100%', padding: '15px 16px', background: 'transparent', textAlign: 'left', fontSize: 15, fontWeight: 500, color, borderTop: i > 0 ? '1px solid var(--border-subtle)' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -215,12 +214,11 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
             <a key={label} href={href} style={{ fontSize: 12, color: 'var(--text-hint)', textDecoration: 'none' }}>{label}</a>
           ))}
         </div>
-      </div>
 
       {/* Manage Account modal */}
       {showManageModal && (
-        <div onClick={closeManageModal} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000 }}>
-          <div onClick={e => e.stopPropagation()} className="sheet" style={{ background: 'var(--bg-card)', borderRadius: '20px 20px 0 0', padding: '24px 20px 40px', width: '100%', maxWidth: 430, display: 'flex', flexDirection: 'column', gap: 12, border: '1px solid var(--border)', borderBottom: 'none' }}>
+        <div className="modal-overlay" onClick={closeManageModal}>
+          <div className="modal-sheet sheet" onClick={e => e.stopPropagation()} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 17, fontWeight: 700 }}>Manage Account</span>
               <button onClick={closeManageModal} style={{ background: 'var(--bg-card-2)', borderRadius: 99, width: 30, height: 30, color: 'var(--text-muted)', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
@@ -252,6 +250,6 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
           </div>
         </div>
       )}
-    </div>
+    </ScreenLayout>
   )
 }

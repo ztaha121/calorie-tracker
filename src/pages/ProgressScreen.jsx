@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import ScreenLayout from '../components/ScreenLayout.jsx'
 
 export default function ProgressScreen({ allEntries, goal }) {
   const days = []
@@ -24,11 +25,11 @@ export default function ProgressScreen({ allEntries, goal }) {
   }, [streak])
 
   const msg = (() => {
-    if (daysLogged === 0) return { text: 'Start logging today — every meal counts.', emoji: '🌱' }
-    if (daysUnderGoal === 7) return { text: 'Perfect week! You hit your goal every day.', emoji: '🏆' }
-    if (daysUnderGoal >= 5) return { text: `Great week — ${daysUnderGoal}/7 days under goal.`, emoji: '🎯' }
-    if (daysUnderGoal >= 3) return { text: `Good progress — ${daysUnderGoal}/7 days on track.`, emoji: '💪' }
-    return { text: 'Every log is a step forward. Keep going.', emoji: '✨' }
+    if (daysLogged === 0) return { text: 'Start logging today — every meal counts.', accent: 'var(--accent)' }
+    if (daysUnderGoal === 7) return { text: 'Perfect week! You hit your goal every day.', accent: '#f97316' }
+    if (daysUnderGoal >= 5) return { text: `Great week — ${daysUnderGoal}/7 days under goal.`, accent: 'var(--accent)' }
+    if (daysUnderGoal >= 3) return { text: `Good progress — ${daysUnderGoal}/7 days on track.`, accent: 'var(--blue)' }
+    return { text: 'Every log is a step forward. Keep going.', accent: 'var(--purple)' }
   })()
 
   const stats = [
@@ -39,69 +40,57 @@ export default function ProgressScreen({ allEntries, goal }) {
   ]
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 24, background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{ padding: '20px 20px 16px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em' }}>Progress</div>
+    <ScreenLayout title="Progress" subtitle="Weekly insights & trends">
+      <div className="glass-card glass-card-pad" style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: `${msg.accent}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: 12, height: 12, borderRadius: '50%', background: msg.accent, boxShadow: `0 0 12px ${msg.accent}` }} />
+        </div>
+        <div>
+          <div className="section-label" style={{ marginBottom: 4 }}>THIS WEEK</div>
+          <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5, fontWeight: 500 }}>{msg.text}</div>
+        </div>
       </div>
 
-      <div style={{ padding: '16px 16px 0' }}>
-        {/* Weekly insight */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', padding: '16px 18px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 14, boxShadow: 'var(--shadow-card)' }}>
-          <div style={{ fontSize: 32, flexShrink: 0 }}>{msg.emoji}</div>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-hint)', letterSpacing: '0.08em', marginBottom: 4 }}>THIS WEEK</div>
-            <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5, fontWeight: 500 }}>{msg.text}</div>
+      <div className="stat-grid" style={{ marginBottom: 12 }}>
+        {stats.map(stat => (
+          <div key={stat.label} className="stat-box">
+            <div className="stat-box-label">{stat.label.toUpperCase()}</div>
+            <div className="stat-box-value" style={{ color: stat.color }}>{stat.value}</div>
+            <div className="stat-box-unit">{stat.unit}</div>
           </div>
-        </div>
+        ))}
+      </div>
 
-        {/* Stats grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-          {stats.map(stat => (
-            <div key={stat.label} style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', padding: '16px 14px', boxShadow: 'var(--shadow-card)' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-hint)', letterSpacing: '0.08em', marginBottom: 8 }}>{stat.label.toUpperCase()}</div>
-              <div style={{ fontSize: 32, fontWeight: 800, color: stat.color, letterSpacing: '-0.04em', lineHeight: 1 }}>{stat.value}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{stat.unit}</div>
+      <div className="glass-card glass-card-pad">
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 16 }}>Last 7 days</div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 130, position: 'relative' }}>
+          <div style={{ position: 'absolute', left: 0, right: 0, bottom: `${(goal / maxCal) * 100}px`, borderTop: '1.5px dashed var(--border)', zIndex: 0 }} />
+          {days.map(day => {
+            const pct = maxCal > 0 ? (day.calories / maxCal) : 0
+            const height = Math.max(pct * 100, day.calories > 0 ? 4 : 0)
+            const isToday = day.label === 'Today'
+            const over = day.calories > goal
+            const barColor = day.calories === 0 ? 'rgba(0,0,0,0.06)' : over ? 'var(--danger)' : 'var(--accent)'
+            return (
+              <div key={day.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, position: 'relative', zIndex: 1 }}>
+                {day.calories > 0 && <div style={{ fontSize: 9, color: 'var(--text-hint)', fontWeight: 600 }}>{day.calories}</div>}
+                <div style={{ width: '100%', display: 'flex', alignItems: 'flex-end', height: 100 }}>
+                  <div style={{ width: '100%', height: `${height}px`, background: barColor, borderRadius: '6px 6px 3px 3px', opacity: isToday ? 1 : 0.65, transition: 'height 0.5s cubic-bezier(0.34,1.2,0.64,1)' }} />
+                </div>
+                <div style={{ fontSize: 10, fontWeight: isToday ? 700 : 500, color: isToday ? 'var(--accent)' : 'var(--text-hint)' }}>{day.label}</div>
+              </div>
+            )
+          })}
+        </div>
+        <div style={{ display: 'flex', gap: 16, marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
+          {[['var(--accent)', 'Under goal'], ['var(--danger)', 'Over goal']].map(([color, label]) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />
+              <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{label}</span>
             </div>
           ))}
         </div>
-
-        {/* Bar chart */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', padding: '18px 16px', boxShadow: 'var(--shadow-card)' }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 16 }}>Last 7 days</div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 130, position: 'relative' }}>
-            {/* Goal line */}
-            <div style={{ position: 'absolute', left: 0, right: 0, bottom: `${(goal / maxCal) * 100}px`, borderTop: '1.5px dashed var(--border)', zIndex: 0 }} />
-            {days.map(day => {
-              const pct = maxCal > 0 ? (day.calories / maxCal) : 0
-              const height = Math.max(pct * 100, day.calories > 0 ? 4 : 0)
-              const isToday = day.label === 'Today'
-              const over = day.calories > goal
-              const barColor = day.calories === 0 ? 'var(--bg-card-2)' : over ? 'var(--danger)' : 'var(--accent)'
-              return (
-                <div key={day.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, position: 'relative', zIndex: 1 }}>
-                  {day.calories > 0 && (
-                    <div style={{ fontSize: 9, color: 'var(--text-hint)', fontWeight: 600, letterSpacing: '-0.01em' }}>{day.calories}</div>
-                  )}
-                  <div style={{ width: '100%', display: 'flex', alignItems: 'flex-end', height: 100 }}>
-                    <div style={{ width: '100%', height: `${height}px`, background: barColor, borderRadius: '6px 6px 3px 3px', opacity: isToday ? 1 : 0.65, transition: 'height 0.5s cubic-bezier(0.34,1.2,0.64,1)' }} />
-                  </div>
-                  <div style={{ fontSize: 10, fontWeight: isToday ? 700 : 500, color: isToday ? 'var(--accent)' : 'var(--text-hint)' }}>{day.label}</div>
-                </div>
-              )
-            })}
-          </div>
-
-          <div style={{ display: 'flex', gap: 16, marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
-            {[['var(--accent)', 'Under goal'], ['var(--danger)', 'Over goal']].map(([color, label]) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />
-                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
-    </div>
+    </ScreenLayout>
   )
 }

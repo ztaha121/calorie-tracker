@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase.js'
 
+import ScreenLayout from '../components/ScreenLayout.jsx'
+
 export default function WeightTracker({ user }) {
   const [logs, setLogs]         = useState([])
   const [weight, setWeight]     = useState('')
@@ -65,40 +67,30 @@ export default function WeightTracker({ user }) {
   const polyline = chartData.map((l, i) => `${pointX(i)},${pointY(fromKg(l.weight_kg))}`).join(' ')
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 24, background: 'var(--bg)' }}>
-
-      {/* Header */}
-      <div style={{ padding: '20px 20px 16px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em' }}>Weight</div>
-          {/* Unit toggle */}
-          <div style={{ display: 'flex', background: 'var(--bg-card-2)', borderRadius: 10, padding: 3, gap: 2 }}>
-            {['kg', 'lbs'].map(u => (
-              <button key={u} onClick={() => { setUnit(u); localStorage.setItem('weight_unit', u) }} style={{
-                padding: '5px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600,
-                background: unit === u ? 'var(--bg-card)' : 'transparent',
-                color: unit === u ? 'var(--text)' : 'var(--text-muted)',
-                boxShadow: unit === u ? 'var(--shadow-card)' : 'none',
-              }}>{u}</button>
-            ))}
-          </div>
+    <ScreenLayout
+      title="Weight"
+      subtitle="Track your progress over time"
+      headerRight={
+        <div className="segment-ios">
+          {['kg', 'lbs'].map(u => (
+            <button key={u} onClick={() => { setUnit(u); localStorage.setItem('weight_unit', u) }} className={`segment-ios-btn${unit === u ? ' active' : ''}`}>{u}</button>
+          ))}
         </div>
-      </div>
-
-      <div style={{ padding: '16px 16px 0' }}>
+      }
+    >
 
         {/* Stats row */}
         {logs.length > 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 12 }}>
+          <div className="stat-grid stat-grid-3" style={{ marginBottom: 12 }}>
             {[
               { label: 'Current', value: latest ? fromKg(latest.weight_kg) : '—', unit, color: 'var(--accent)' },
               { label: 'Starting', value: first ? fromKg(first.weight_kg) : '—', unit, color: 'var(--text)' },
               { label: 'Change', value: change !== null ? (change > 0 ? `+${change}` : change) : '—', unit: change !== null ? unit : '', color: change === null ? 'var(--text)' : change < 0 ? 'var(--accent)' : 'var(--orange)' },
             ].map(({ label, value, unit: u, color }) => (
-              <div key={label} style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', padding: '14px 10px', textAlign: 'center', boxShadow: 'var(--shadow-card)' }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-hint)', letterSpacing: '0.08em', marginBottom: 6 }}>{label.toUpperCase()}</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color, letterSpacing: '-0.03em', lineHeight: 1 }}>{value}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>{u}</div>
+              <div key={label} className="stat-box" style={{ padding: '14px 10px', textAlign: 'center' }}>
+                <div className="stat-box-label">{label.toUpperCase()}</div>
+                <div className="stat-box-value" style={{ fontSize: 22, color }}>{value}</div>
+                <div className="stat-box-unit">{u}</div>
               </div>
             ))}
           </div>
@@ -195,13 +187,12 @@ export default function WeightTracker({ user }) {
         )}
 
         {logs.length === 0 && !loading && (
-          <div style={{ textAlign: 'center', padding: '40px 20px', background: 'var(--bg-card)', borderRadius: 'var(--radius)', border: '1.5px dashed var(--border)' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>⚖️</div>
-            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>No weight logged yet</div>
-            <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>Log your weight above to start tracking.</div>
+          <div className="empty-state">
+            <img src="/logo.png" alt="Mizan" />
+            <div className="empty-state-title">No weight logged yet</div>
+            <div className="empty-state-sub">Log your weight above to start tracking.</div>
           </div>
         )}
-      </div>
-    </div>
+    </ScreenLayout>
   )
 }

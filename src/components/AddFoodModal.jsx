@@ -279,27 +279,10 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
   )
 
   return (
-    <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', zIndex: 100, display: 'flex', alignItems: 'flex-end' }}
-      onClick={onClose}
-    >
-      <div
-        className="animate-sheet"
-        style={{
-          width: '100%',
-          background: 'var(--bg-card)',
-          borderRadius: '20px 20px 0 0',
-          paddingBottom: 'env(safe-area-inset-bottom, 20px)',
-          maxHeight: '93dvh', overflowY: 'auto',
-        }}
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Handle */}
-        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, paddingBottom: 4 }}>
-          <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.2)' }} />
-        </div>
-
-        <div style={{ padding: '12px 20px 28px' }}>
+    <div className="modal-overlay" style={{ zIndex: 100, alignItems: 'flex-end' }} onClick={onClose}>
+      <div className="modal-sheet sheet" style={{ maxHeight: '93dvh', overflowY: 'auto', paddingBottom: 'env(safe-area-inset-bottom, 20px)' }} onClick={e => e.stopPropagation()}>
+        <div className="auth-sheet-handle" style={{ marginTop: 8 }} />
+        <div style={{ padding: '0 20px 28px' }}>
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em' }}>

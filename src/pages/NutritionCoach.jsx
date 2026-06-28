@@ -99,29 +99,20 @@ export default function NutritionCoach({ user, allEntries, goal, macroGoals }) {
   const remainingFree = Math.max(0, FREE_LIMIT - freeUsed)
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--bg)', overflow: 'hidden' }}>
-
-      {/* Header */}
-      <div style={{ padding: '20px 20px 16px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="screen" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', paddingBottom: 0 }}>
+      <div className="screen-header" style={{ flexShrink: 0 }}>
+        <div className="screen-header-top">
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em' }}>AI Coach ✦</div>
-            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>Personalized nutrition advice</div>
+            <h1 className="screen-title">AI Coach</h1>
+            <p className="screen-subtitle">Personalized nutrition advice</p>
           </div>
-          {!isPro && (
-            <div style={{
-              background: remainingFree > 0 ? 'var(--bg-card-2)' : 'var(--danger-dim)',
-              border: `1px solid ${remainingFree > 0 ? 'var(--border)' : 'rgba(239,68,68,0.3)'}`,
-              borderRadius: 99, padding: '6px 12px', textAlign: 'center',
-            }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: remainingFree > 0 ? 'var(--text)' : 'var(--danger)', lineHeight: 1 }}>{remainingFree}</div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-hint)', letterSpacing: '0.04em' }}>FREE LEFT</div>
+          {!isPro ? (
+            <div className="streak-badge" style={{ minWidth: 48 }}>
+              <div className="streak-badge-num" style={{ color: remainingFree > 0 ? 'var(--text)' : 'var(--danger)' }}>{remainingFree}</div>
+              <div className="streak-badge-label">FREE</div>
             </div>
-          )}
-          {isPro && (
-            <div style={{ background: 'var(--accent-dim)', border: '1px solid var(--accent-glow)', borderRadius: 99, padding: '5px 12px', fontSize: 12, fontWeight: 700, color: 'var(--accent)' }}>
-              ✦ Pro
-            </div>
+          ) : (
+            <div className="btn-accent-pill">Pro</div>
           )}
         </div>
       </div>
@@ -135,13 +126,13 @@ export default function NutritionCoach({ user, allEntries, goal, macroGoals }) {
             marginBottom: 12,
           }}>
             {msg.role === 'assistant' && (
-              <div style={{ width: 28, height: 28, borderRadius: 99, background: 'var(--accent-dim)', border: '1px solid var(--accent-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0, marginRight: 8, marginTop: 2 }}>✦</div>
+              <img src="/logo.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0, marginRight: 8, marginTop: 2 }} />
             )}
             <div style={{
               maxWidth: '78%',
               padding: '12px 14px',
               borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-              background: msg.role === 'user' ? 'var(--accent)' : 'var(--bg-card)',
+              background: msg.role === 'user' ? 'linear-gradient(135deg, #00c97a, #00a862)' : 'var(--bg-card)',
               color: msg.role === 'user' ? '#fff' : 'var(--text)',
               fontSize: 14, lineHeight: 1.6,
               boxShadow: 'var(--shadow-card)',
@@ -209,20 +200,16 @@ export default function NutritionCoach({ user, allEntries, goal, macroGoals }) {
       )}
 
       {/* Input */}
-      <div style={{ padding: '8px 16px 16px', background: 'var(--bg-card)', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
+      <div style={{ padding: '8px 16px 16px', background: 'rgba(255,255,255,0.72)', backdropFilter: 'var(--glass-blur)', borderTop: '1px solid rgba(255,255,255,0.6)', flexShrink: 0 }}>
         <div style={{ display: 'flex', gap: 8 }}>
           <input
+            className="input-ios"
+            style={{ flex: 1, padding: '12px 16px' }}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
             placeholder={!isPro && remainingFree === 0 ? 'Upgrade to continue…' : 'Ask your coach…'}
             disabled={!isPro && remainingFree === 0}
-            style={{
-              flex: 1, padding: '12px 16px',
-              background: 'var(--bg-input)', border: '1.5px solid var(--border)',
-              borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: 15,
-              fontFamily: 'inherit',
-            }}
           />
           <button
             onClick={sendMessage}

@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 
+import ScreenLayout from '../components/ScreenLayout.jsx'
+
 // ── Prayer time fetcher ───────────────────────────────────────────────────────
 async function fetchPrayerTimes(lat, lon) {
   const today = new Date()
@@ -203,25 +205,16 @@ export default function RamadanScreen({ entries, goal, macroGoals, onAdd, user }
   }, {})
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 24, background: 'var(--bg)' }}>
-
-      {/* Header */}
-      <div style={{ padding: '20px 20px 16px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ fontSize: 12, color: 'var(--text-hint)', fontWeight: 500, marginBottom: 2 }}>
-          {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+    <ScreenLayout
+      title="Ramadan"
+      subtitle={new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+      headerRight={fastingDays > 0 ? (
+        <div className="streak-badge" style={{ background: 'rgba(99,102,241,0.10)', borderColor: 'rgba(99,102,241,0.25)' }}>
+          <div className="streak-badge-num" style={{ color: '#6366f1' }}>{fastingDays}</div>
+          <div className="streak-badge-label">DAYS</div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em' }}>رمضان ✨</div>
-          {fastingDays > 0 && (
-            <div style={{ background: 'rgba(99,102,241,0.10)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: 14, padding: '8px 14px', textAlign: 'center' }}>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#6366f1', letterSpacing: '-0.03em', lineHeight: 1 }}>{fastingDays}</div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(99,102,241,0.6)', letterSpacing: '0.04em' }}>DAYS FASTED</div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div style={{ padding: '16px 16px 0' }}>
+      ) : null}
+    >
 
         {/* Location / prayer time setup */}
         {!prayerTimes && (
@@ -374,7 +367,6 @@ export default function RamadanScreen({ entries, goal, macroGoals, onAdd, user }
             </div>
           ))}
         </div>
-      </div>
-    </div>
+    </ScreenLayout>
   )
 }

@@ -12,9 +12,8 @@ import FriendsScreen from './pages/FriendsScreen.jsx'
 import ArabicRecipeScreen from './pages/ArabicRecipeScreen.jsx'
 import MoreScreen from './pages/MoreScreen.jsx'
 import NutritionCoach from './pages/NutritionCoach.jsx'
-import StreakProtection from './components/StreakProtection.jsx'
 
-const today = () => new Date().toISOString().split('T')[0]
+const today = () => new Date().toISOString().split('T')[0] = () => new Date().toISOString().split('T')[0]
 const DEFAULTS = { goal: 2000, macroGoals: { protein: 150, carbs: 200, fat: 65 } }
 
 function loadLocalEntries() {
@@ -121,6 +120,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('today')
   const [allEntries, setAllEntries] = useState(loadLocalEntries)
   const [dbLoading, setDbLoading] = useState(false)
+  const [showProBanner, setShowProBanner] = useState(false)
   const [settings, setSettings] = useState(() => {
     try { return JSON.parse(localStorage.getItem('settings') || 'null') || DEFAULTS } catch { return DEFAULTS }
   })
@@ -129,16 +129,33 @@ export default function App() {
     const savedTheme = localStorage.getItem('theme') || 'light'
     document.documentElement.setAttribute('data-theme', savedTheme)
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {})
-    supabase.auth.getSession().then(({ data }) => { setUser(data.session?.user ?? null); setAuthChecked(true) })
+
+    supabase.auth.getSession().then(({ data }) => {
+      const u = data.session?.user ?? null
+      setUser(u)
+      setAuthChecked(true)
+
+      // Poll for premium status (only for non-premium users)
+      if (u) {
+        supabase.from('profiles').select('is_premium').eq('id', u.id).single().then(({ data: profile }) => {
+          if (profile?.is_premium) return // already premium, no need to poll
+          let attempts = 0
+          const interval = setInterval(async () => {
+            attempts++
+            const { data: p } = await supabase.from('profiles').select('is_premium').eq('id', u.id).single()
+            if (p?.is_premium) {
+              clearInterval(interval)
+              setShowProBanner(true)
+              setTimeout(() => setShowProBanner(false), 5000)
+            }
+            if (attempts > 20) clearInterval(interval) // stop after ~20s
+          }, 1000)
+        })
+      }
+    })
+
     const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null))
     window.addEventListener('skip-auth', () => { localStorage.setItem('skip_auth', 'true'); setSkipAuth(true) })
-    if (window.location.search.includes('upgraded=true')) {
-      window.history.replaceState({}, '', window.location.pathname)
-      supabase.auth.getSession().then(({ data }) => {
-        const uid = data.session?.user?.id
-        if (uid) supabase.from('profiles').upsert({ id: uid, is_premium: true, scan_count: 0 }).then(() => window.location.reload())
-      })
-    }
     return () => listener.subscription.unsubscribe()
   }, [])
 
@@ -154,7 +171,7 @@ export default function App() {
       localStorage.setItem('summary_scheduled_' + todayKey, 'true')
       reg.active.postMessage({
         type: 'SCHEDULE_DAILY_SUMMARY',
-        calories: 0, // SW will use this as baseline; app reschedules with real data
+        calories: 0,
         goal: settings.goal,
         name,
       })
@@ -238,13 +255,24 @@ export default function App() {
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', width: '100%', maxWidth: 430, margin: '0 auto', overflow: 'hidden', background: 'var(--bg)' }}>
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div className="app-shell">
+      <div className="app-ambient">
+        <div className="auth-blob auth-blob-1" />
+        <div className="auth-blob auth-blob-2" />
+        <div className="auth-blob auth-blob-3" />
+      </div>
+
+      {showProBanner && (
+        <div className="toast-glass" style={{ top: 24, zIndex: 999 }}>
+          You're now Pro!
+        </div>
+      )}
+
+      <div className="app-content">
         {dbLoading ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-            <img src="/icon-192.png" style={{ width: 56, height: 56, borderRadius: 14, animation: 'pulse 1.5s ease-in-out infinite' }} />
+            <img src="/logo.png" className="logo-mini" style={{ width: 72, height: 72, animation: 'pulse 1.5s ease-in-out infinite' }} alt="Mizan" />
             <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading your data…</div>
-            <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
           </div>
         ) : (
           <>
@@ -262,20 +290,9 @@ export default function App() {
         )}
       </div>
 
-      {/* Tab bar */}
-      <div style={{
-        background: 'var(--bg-card)',
-        borderTop: '1px solid var(--border)',
-        display: 'flex', flexShrink: 0,
-        paddingBottom: 'env(safe-area-inset-bottom)',
-        boxShadow: '0 -1px 0 var(--border)',
-      }}>
+      <div className="app-tab-bar">
         {navItems.map(({ tab, label }) => (
-          <button key={tab} onClick={() => setActiveTab(tab)} style={{
-            flex: 1, padding: '10px 0 12px',
-            background: 'none', display: 'flex',
-            flexDirection: 'column', alignItems: 'center', gap: 4,
-          }}>
+          <button key={tab} onClick={() => setActiveTab(tab)} className="app-tab-btn">
             <TabIcon tab={tab} active={activeTab === tab} />
             <span style={{
               fontSize: 10, fontWeight: activeTab === tab ? 700 : 500,
