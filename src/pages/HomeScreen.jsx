@@ -10,6 +10,7 @@ const WATER_GOAL = 8
 const MEAL_ICONS = { Breakfast: '☀️', Lunch: '🌤️', Dinner: '🌙', Snack: '⚡' }
 const WATER_MESSAGES = ["You're glowing 💧", "Hydration queen! ✦", "8/8 — thriving 🌊", "Skin is eating 💦", "Your body says thank you 🫧"]
 const GOAL_MESSAGES = ["Goal crushed! 🎯", "Perfect day! 🏆", "You did it! ⚡", "On point! ✨", "Nailed it today! 💪"]
+const GUMROAD_URL = 'https://zaytaha.gumroad.com/l/cyfiz'
 
 // ── Streak calculation ────────────────────────────────────────────────────────
 function getStreak(allEntries) {
@@ -111,7 +112,7 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
     const today = new Date().toISOString().split('T')[0]
     const dismissed = localStorage.getItem('streak_dismissed_' + today) === 'true'
     const frozen = localStorage.getItem('streak_freeze_' + today) === 'true'
-    return false // evaluated after entries load
+    return false
   })
 
   const totals = entries.reduce((acc, e) => ({
@@ -133,7 +134,6 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
   const grouped   = MEAL_ORDER.reduce((acc, m) => { acc[m] = entries.filter(e => e.meal === m); return acc }, {})
   const ungrouped = entries.filter(e => !e.meal || !MEAL_ORDER.includes(e.meal))
 
-  // Show streak protection if no entries today and streak >= 3
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0]
     const dismissed = localStorage.getItem('streak_dismissed_' + today) === 'true'
@@ -144,7 +144,6 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
     }
   }, [streak, entries.length])
 
-  // Goal celebration — fires once per day when goal is first hit
   useEffect(() => {
     if (calories >= goal && goal > 0 && !goalCelebrated && entries.length > 0) {
       const todayKey = new Date().toISOString().split('T')[0]
@@ -214,7 +213,6 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
 
       {/* Header */}
       <div style={{ padding: '20px 20px 0', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
-        {/* Top row: greeting + streak */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
           <div>
             <div style={{ fontSize: 12, color: 'var(--text-hint)', fontWeight: 500, marginBottom: 2 }}>
@@ -225,7 +223,6 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
             </div>
           </div>
 
-          {/* Streak badge */}
           {streak > 0 && (
             <div style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -240,7 +237,6 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
           )}
         </div>
 
-        {/* Calorie ring + stats */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, paddingBottom: 20 }}>
           <CalorieRing consumed={calories} goal={goal} />
           <div style={{ flex: 1 }}>
@@ -354,7 +350,6 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
       <div style={{ padding: '16px 16px 0', display: 'flex', gap: 10 }}>
         <button onClick={() => { setEditEntry(null); setShowModal(true) }} style={{ flex: 1, padding: '15px', background: 'var(--accent)', borderRadius: 'var(--radius)', color: '#fff', fontSize: 16, fontWeight: 700, letterSpacing: '-0.01em', boxShadow: 'var(--shadow-accent)' }}>+ Log food</button>
         <button onClick={() => { setEditEntry(null); setShowModal(true); setTimeout(() => window._mizanSetTab?.('scan'), 100) }} style={{ width: 54, height: 54, background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: 22, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-card)' }}>📷</button>
-        {/* Share button */}
         <button onClick={() => setShowShareSheet(true)} style={{ width: 54, height: 54, background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: 22, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-card)' }}>📤</button>
       </div>
 
@@ -417,14 +412,12 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
               <button onClick={() => setShowShareSheet(false)} style={{ background: 'var(--bg-card-2)', borderRadius: 99, width: 30, height: 30, color: 'var(--text-muted)', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
             </div>
 
-            {/* Preview card */}
             <div style={{ background: 'var(--bg-card-2)', borderRadius: 16, padding: '16px 18px', marginBottom: 20, border: '1px solid var(--border)' }}>
               <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>🥗 Mizan Daily Summary</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                 <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Calories</span>
                 <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)' }}>{calories}/{goal} kcal</span>
               </div>
-              {/* Progress bar preview */}
               <div style={{ height: 6, background: 'var(--border)', borderRadius: 99, overflow: 'hidden', marginBottom: 10 }}>
                 <div style={{ height: '100%', width: `${Math.min(100, Math.round(pct * 100))}%`, background: over ? 'var(--danger)' : 'var(--accent)', borderRadius: 99 }} />
               </div>
@@ -465,7 +458,7 @@ export default function HomeScreen({ entries, onAdd, onRemove, onEdit, goal, mac
           }}
           onUpgrade={() => {
             setShowStreakModal(false)
-            window.location.href = 'https://calorie-tracker.lemonsqueezy.com/checkout/buy/dcfeff6d-dfd3-4617-b1c2-bfe200389807?redirect_url=https://calorie-tracker-fawn-sigma.vercel.app?upgraded=true'
+            window.location.href = GUMROAD_URL
           }}
         />
       )}

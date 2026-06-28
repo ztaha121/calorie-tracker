@@ -16,6 +16,8 @@ export default function NutritionCoach({ user, allEntries, goal, macroGoals }) {
   const bottomRef = useRef()
   const FREE_LIMIT = 3
 
+  const GUMROAD_URL = 'https://zaytaha.gumroad.com/l/cyfiz'
+
   useEffect(() => {
     if (user) {
       supabase.from('profiles').select('is_premium').eq('id', user.id).single()
@@ -50,7 +52,6 @@ export default function NutritionCoach({ user, allEntries, goal, macroGoals }) {
     }
 
     try {
-      // Get the current session token
       const { data: { session } } = await supabase.auth.getSession()
 
       if (!session) {
@@ -72,10 +73,8 @@ export default function NutritionCoach({ user, allEntries, goal, macroGoals }) {
       const data = await response.json()
 
       if (!response.ok || data.error) {
-        // If the user isn't premium on the backend, show upgrade modal
         if (data.code === 'NOT_PREMIUM') {
           setShowUpgrade(true)
-          // Refund the free message count since backend rejected it
           if (!isPro) {
             setFreeUsed(freeUsed)
             localStorage.setItem('coach_free_used', freeUsed)
@@ -257,10 +256,10 @@ export default function NutritionCoach({ user, allEntries, goal, macroGoals }) {
               ))}
             </div>
             <button
-              onClick={() => { window.location.href = 'https://calorie-tracker.lemonsqueezy.com/checkout/buy/dcfeff6d-dfd3-4617-b1c2-bfe200389807?redirect_url=https://calorie-tracker-fawn-sigma.vercel.app?upgraded=true' }}
+              onClick={() => { window.location.href = GUMROAD_URL }}
               style={{ width: '100%', padding: '15px', background: 'var(--accent)', borderRadius: 'var(--radius-sm)', color: '#fff', fontSize: 16, fontWeight: 700, marginBottom: 12, boxShadow: 'var(--shadow-accent)' }}
             >
-              Upgrade for $2.99/month
+              Upgrade for $4.99/month
             </button>
             <button onClick={() => setShowUpgrade(false)} style={{ width: '100%', padding: '12px', background: 'none', color: 'var(--text-muted)', fontSize: 14 }}>Maybe later</button>
           </div>

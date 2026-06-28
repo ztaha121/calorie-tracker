@@ -3,6 +3,8 @@ import { useState } from 'react'
 export default function UpgradeScreen({ onClose, scansUsed = 3, user }) {
   const [loading, setLoading] = useState(false)
 
+  const GUMROAD_URL = 'https://zaytaha.gumroad.com/l/cyfiz'
+
   const features = [
     { icon: '✦', text: 'Unlimited AI food scans' },
     { icon: '🌙', text: 'Arabic & Gulf food recognition' },
@@ -28,10 +30,10 @@ export default function UpgradeScreen({ onClose, scansUsed = 3, user }) {
         <div style={{ background: 'var(--accent-dim)', border: '1.5px solid var(--accent-glow)', borderRadius: 'var(--radius)', padding: '18px', marginBottom: 20, textAlign: 'center' }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.08em', marginBottom: 6 }}>PRO PLAN</div>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4, marginBottom: 4 }}>
-            <span style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-0.04em' }}>$2.99</span>
+            <span style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-0.04em' }}>$4.99</span>
             <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>/month</span>
           </div>
-          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Cancel anytime</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Cancel anytime · 7-day free trial</div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
@@ -49,8 +51,12 @@ export default function UpgradeScreen({ onClose, scansUsed = 3, user }) {
             <button onClick={() => { localStorage.removeItem('skip_auth'); location.reload() }} style={{ width: '100%', padding: '15px', background: 'var(--accent)', borderRadius: 'var(--radius-sm)', color: '#fff', fontSize: 16, fontWeight: 700, marginBottom: 12, boxShadow: 'var(--shadow-accent)' }}>Create account</button>
           </>
         ) : (
-          <button onClick={() => { window.location.href = 'https://calorie-tracker.lemonsqueezy.com/checkout/buy/dcfeff6d-dfd3-4617-b1c2-bfe200389807?redirect_url=https://calorie-tracker-fawn-sigma.vercel.app?upgraded=true' }} disabled={loading} style={{ width: '100%', padding: '15px', background: 'var(--accent)', borderRadius: 'var(--radius-sm)', color: '#fff', fontSize: 16, fontWeight: 700, marginBottom: 12, opacity: loading ? 0.7 : 1, boxShadow: 'var(--shadow-accent)' }}>
-            Upgrade for $2.99/month
+          <button
+            onClick={() => { window.location.href = GUMROAD_URL }}
+            disabled={loading}
+            style={{ width: '100%', padding: '15px', background: 'var(--accent)', borderRadius: 'var(--radius-sm)', color: '#fff', fontSize: 16, fontWeight: 700, marginBottom: 12, opacity: loading ? 0.7 : 1, boxShadow: 'var(--shadow-accent)' }}
+          >
+            Upgrade for $4.99/month
           </button>
         )}
         <button onClick={onClose} style={{ width: '100%', padding: '12px', background: 'none', color: 'var(--text-muted)', fontSize: 14 }}>Maybe later</button>

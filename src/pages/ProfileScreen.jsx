@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase.js'
 
+const GUMROAD_URL = 'https://zaytaha.gumroad.com/l/cyfiz'
+
 function calculateGoals({ weight, height, age, sex, activity, goalType }) {
   const w = Number(weight), h = Number(height), a = Number(age)
   if (!w || !h || !a) return null
@@ -93,7 +95,6 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
       <div style={{ padding: '20px 20px 20px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
         <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 16 }}>Profile</div>
 
-        {/* Avatar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{ width: 56, height: 56, borderRadius: 99, background: 'var(--accent-dim)', border: '2px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, color: 'var(--accent)', fontWeight: 700, flexShrink: 0 }}>
             {user?.email?.[0]?.toUpperCase() || '?'}
@@ -193,7 +194,7 @@ export default function ProfileScreen({ user, goal, macroGoals, onUpdateGoals, o
         {user ? (
           <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: 12, boxShadow: 'var(--shadow-card)' }}>
             {[
-              { label: '✨ Restore purchase', color: 'var(--accent)', action: async () => { const { data } = await supabase.from('profiles').select('is_premium').eq('id', user.id).single(); if (data?.is_premium) alert('✨ Pro access confirmed!'); else window.location.href = 'https://calorie-tracker.lemonsqueezy.com/checkout/buy/dcfeff6d-dfd3-4617-b1c2-bfe200389807?redirect_url=https://calorie-tracker-fawn-sigma.vercel.app?upgraded=true' } },
+              { label: '✨ Restore purchase', color: 'var(--accent)', action: async () => { const { data } = await supabase.from('profiles').select('is_premium').eq('id', user.id).single(); if (data?.is_premium) alert('✨ Pro access confirmed!'); else window.location.href = GUMROAD_URL } },
               { label: '📤 Share Mizan', color: 'var(--text)', action: () => { if (navigator.share) navigator.share({ title: 'Mizan', text: 'Track nutrition with AI!', url: 'https://calorie-tracker-fawn-sigma.vercel.app' }); else { navigator.clipboard.writeText('https://calorie-tracker-fawn-sigma.vercel.app'); alert('Link copied!') } } },
               { label: '⚙️ Manage account', color: 'var(--text-muted)', action: () => setShowManageModal(true) },
               { label: 'Sign out', color: 'var(--danger)', action: () => supabase.auth.signOut() },
