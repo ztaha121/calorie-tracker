@@ -13,7 +13,8 @@ import ArabicRecipeScreen from './pages/ArabicRecipeScreen.jsx'
 import MoreScreen from './pages/MoreScreen.jsx'
 import NutritionCoach from './pages/NutritionCoach.jsx'
 
-const today = () => new Date().toISOString().split('T')[0] = () => new Date().toISOString().split('T')[0]
+// ✅ FIXED: removed duplicate assignment that was breaking date keys
+const today = () => new Date().toISOString().split('T')[0]
 const DEFAULTS = { goal: 2000, macroGoals: { protein: 150, carbs: 200, fat: 65 } }
 
 function loadLocalEntries() {
@@ -135,10 +136,9 @@ export default function App() {
       setUser(u)
       setAuthChecked(true)
 
-      // Poll for premium status (only for non-premium users)
       if (u) {
         supabase.from('profiles').select('is_premium').eq('id', u.id).single().then(({ data: profile }) => {
-          if (profile?.is_premium) return // already premium, no need to poll
+          if (profile?.is_premium) return
           let attempts = 0
           const interval = setInterval(async () => {
             attempts++
@@ -148,7 +148,7 @@ export default function App() {
               setShowProBanner(true)
               setTimeout(() => setShowProBanner(false), 5000)
             }
-            if (attempts > 20) clearInterval(interval) // stop after ~20s
+            if (attempts > 20) clearInterval(interval)
           }, 1000)
         })
       }
@@ -159,7 +159,6 @@ export default function App() {
     return () => listener.subscription.unsubscribe()
   }, [])
 
-  // Schedule daily summary notification at 8pm
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
     navigator.serviceWorker.ready.then(reg => {
@@ -251,7 +250,7 @@ export default function App() {
     { tab: 'log',     label: 'Log' },
     { tab: 'progress',label: 'Progress' },
     { tab: 'friends', label: 'Friends' },
-    { tab: 'more', label: 'More' },
+    { tab: 'more',    label: 'More' },
   ]
 
   return (
@@ -264,7 +263,7 @@ export default function App() {
 
       {showProBanner && (
         <div className="toast-glass" style={{ top: 24, zIndex: 999 }}>
-          You're now Pro!
+          You're now Pro! 🎉
         </div>
       )}
 
