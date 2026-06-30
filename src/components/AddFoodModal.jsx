@@ -127,7 +127,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
   const [showBarcode, setShowBarcode] = useState(false)
   const [selected, setSelected] = useState(null)
   const [portion, setPortion] = useState(isEdit ? (editEntry.portion || 100) : 100)
-  const [portionMode, setPortionMode] = useState('grams') // 'grams' or 'quantity'
+  const [portionMode, setPortionMode] = useState('grams')
   const [quantity, setQuantity] = useState(1)
   const [meal, setMeal] = useState(isEdit ? (editEntry.meal || getCurrentMeal()) : getCurrentMeal())
   const [custom, setCustom] = useState(isEdit
@@ -145,7 +145,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SpeechRecognition) { alert('Voice search is not supported on this browser.'); return }
     const recognition = new SpeechRecognition()
-    recognition.lang = 'ar-SA' // Arabic first, falls back to English
+    recognition.lang = 'ar-SA'
     recognition.interimResults = false
     recognition.maxAlternatives = 1
     setListening(true)
@@ -219,10 +219,8 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
 
   function selectFood(item) { setSelected(item); setPortion(100); setTab('confirm') }
 
-  // Effective grams: in grams mode = slider value, in quantity mode = quantity * base per (default 100g)
   function effectiveGrams() {
     if (portionMode === 'grams') return portion
-    // quantity mode: 1 unit = the food's base amount (default 100g)
     return quantity * 100
   }
 
@@ -280,9 +278,11 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
 
   return (
     <div className="modal-overlay" style={{ zIndex: 100, alignItems: 'flex-end' }} onClick={onClose}>
-      <div className="modal-sheet sheet" style={{ maxHeight: '93dvh', overflowY: 'auto', paddingBottom: 'env(safe-area-inset-bottom, 20px)' }} onClick={e => e.stopPropagation()}>
+      {/* ✅ FIXED: paddingBottom increased from env(safe-area-inset-bottom, 20px) to max(env(safe-area-inset-bottom), 40px) */}
+      <div className="modal-sheet sheet" style={{ maxHeight: '93dvh', overflowY: 'auto', paddingBottom: 'max(env(safe-area-inset-bottom), 40px)' }} onClick={e => e.stopPropagation()}>
         <div className="auth-sheet-handle" style={{ marginTop: 8 }} />
-        <div style={{ padding: '0 20px 28px' }}>
+        {/* ✅ FIXED: inner padding-bottom increased from 28px to 48px */}
+        <div style={{ padding: '0 20px 48px' }}>
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em' }}>
@@ -299,7 +299,7 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
             >✕</button>
           </div>
 
-          {/* Meal selector — iOS segmented style */}
+          {/* Meal selector */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 20, overflowX: 'auto', paddingBottom: 2 }}>
             {MEAL_TYPES.map(m => (
               <button key={m} onClick={() => setMeal(m)} style={{
@@ -338,7 +338,6 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                   value={query}
                   onChange={e => { setQuery(e.target.value); if (e.target.value.length > 2) searchFood(e.target.value) }}
                 />
-                {/* Mic button */}
                 <button onClick={startVoice} style={{
                   width: 50, height: 50, borderRadius: 12, flexShrink: 0,
                   background: listening ? 'var(--danger)' : 'var(--bg-card-2)',
@@ -546,7 +545,6 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>
                     <span>10g</span><span>100g</span><span>250g</span><span>500g</span>
                   </div>
-                  {/* Quick presets */}
                   <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
                     {[50, 100, 150, 200, 300].map(g => (
                       <button key={g} onClick={() => setPortion(g)} style={{
@@ -564,7 +562,6 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                     <span style={{ fontSize: 15, color: 'var(--text-muted)' }}>Number of servings</span>
                     <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--accent)' }}>{quantity}</span>
                   </div>
-                  {/* +/- stepper */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <button onClick={() => setQuantity(q => Math.max(0.5, q - 0.5))} style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: 24, fontWeight: 300, color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
                     <input
@@ -575,7 +572,6 @@ export default function AddFoodModal({ onAdd, onClose, editEntry, user }) {
                     />
                     <button onClick={() => setQuantity(q => q + 0.5)} style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--accent)', fontSize: 24, fontWeight: 300, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
                   </div>
-                  {/* Quick qty presets */}
                   <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
                     {[0.5, 1, 1.5, 2, 3].map(q => (
                       <button key={q} onClick={() => setQuantity(q)} style={{
